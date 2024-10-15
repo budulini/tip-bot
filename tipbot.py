@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 bot = discord.Bot()
-SCORES_FILE = "scores.json"
+SCORES_FILE = "stats/scores.json"
 
 
 # Load scores from a file
