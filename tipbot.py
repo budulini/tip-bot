@@ -138,7 +138,7 @@ async def super_sigma(ctx: discord.ApplicationContext, target_guild_id: str, use
 # Event when bot is ready
 @bot.event
 async def on_ready():
-    activity = discord.Activity(type=discord.ActivityType.watching, name="over the server")
+    activity = discord.Activity(type=discord.ActivityType.playing, name="with honík")
     await bot.change_presence(activity=activity)
     load_scores()
     bot.add_cog(Music(bot))
