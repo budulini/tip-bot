@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 bot = discord.Bot()
 SCORES_FILE = "stats/scores.json"
-
+slovnikfile = "slovnik.json"
 
 # Load scores from a file
 def load_scores():
@@ -95,6 +95,13 @@ async def wolf(ctx: discord.ApplicationContext, member: discord.Member, times: i
         await ctx.send(f"{member.mention}")
         time.sleep(0.5)  # Delay to avoid spam detection
 
+# Slovník
+@bot.slash_command(name="slovnik")
+async def slovnik(ctx: discord.ApplicationContext, word: str):
+    with open(slovnikfile, "r") as file:
+        slovnik = json.load(file)
+        await ctx.respond(slovník)
+
 
 # SUPER SIGMA: Kick from another server's voice channel
 @bot.slash_command(name="super_sigma", guild=discord.Object(id=876802324192952320))
@@ -127,13 +134,17 @@ async def super_sigma(ctx: discord.ApplicationContext, target_guild_id: str, use
         await ctx.respond(f"{member.name} is not in a voice channel on {target_guild.name}.", ephemeral=True)
 
 
+
 # Event when bot is ready
 @bot.event
 async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.watching, name="over the server")
     await bot.change_presence(activity=activity)
     load_scores()
+    bot.add_cog(Music(bot))
+    await bot.sync_commands()
     print(f"{bot.user} is online!")
+
 
 
 def runBot():
