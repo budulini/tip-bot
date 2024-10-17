@@ -326,4 +326,5 @@ cython_debug/
 .idea/discord.xml
 
 .env_tom
-.gitigonre discord/
+
+discord/

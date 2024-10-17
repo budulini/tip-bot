@@ -3,6 +3,7 @@ import json
 import os
 import time
 from dotenv import load_dotenv
+import music_cog
 
 load_dotenv()
 bot = discord.Bot()
@@ -141,7 +142,7 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.playing, name="with honík")
     await bot.change_presence(activity=activity)
     load_scores()
-    bot.add_cog(Music(bot))
+    bot.add_cog(music_cog.MusicCog(bot))
     await bot.sync_commands()
     print(f"{bot.user} is online!")
 
