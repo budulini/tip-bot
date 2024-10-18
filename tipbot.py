@@ -248,6 +248,7 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.playing, name="with honík")
     await bot.change_presence(activity=activity)
     load_scores()
+
     await bot.sync_commands()
     print(f"{bot.user} is online!")
 
