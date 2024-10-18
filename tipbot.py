@@ -1,14 +1,18 @@
 import discord
+from discord.ext import commands
 import json
 import os
 import time
 from dotenv import load_dotenv
-import youtube_dl
+import yt_dlp
 
 load_dotenv()
 bot = discord.Bot()
 SCORES_FILE = "stats/scores.json"
 slovnikfile = "slovnik.json"
+FFMPEG_OPTIONS = {'options': '-vn'}
+YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
+
 
 # Load scores from a file
 def load_scores():
@@ -102,113 +106,53 @@ async def slovnik(ctx):
         await ctx.respond("The Classics: Skibidi, Grimace Shake, Fanum Tax, Doomscrolling, Chat, Kai Cenat, Edging, Rizzing, Gooning, Rizz, Rizzing, Sigma, Only in Ohio, 19 Dollar Fortnite card, Double Pump, Hitting the Griddy, Ice Spice, Level 100 Gyatt, Gooning cave, Discord Kitten, You make my heart burn\n \n Adjectives: Sus, Sussy, Sussy baka, Rizzler, Alpha, Beta, Sigma, Based, Chuds, Thot, Skibidi Sigma, Simp, Soyboy, Chads, Sturdy, Gamer, Incel, Cringe/Cringey, Furry, Discord Kitten, Streamer, Zesty, Boomer, Doomer, Coomer, Zoomer, Gooner, Goofy, Silly, Cracked at fortnite\n \n Brands/Franchises: Fortnite, Reddit, Youtube Shorts, TikTok, Mc Donalds, Gucci, Supreme, Discord, Roblox, Subway Surfers shorts, Family guy shorts, Tinder, Uber Eats,\n \n Streamers/People: Mr beast, Ice Spice, Kai cenat, Fanum, Caseoh, DaFuqBoom, Baby gronk, Master Oogway, Peter Griffin, Raven Team leader, Andrew tate, Ben Shapiro, Jordan Peterson, Elon Musk, Dababy, Lebron James, Kanye West.\n \n Sounds: Yeet, Oof, Leroy Jenkins, gyatt, Happy Happy Happy, Oh no!!\n \n Catchphrases: Leroy Jenkins, Hell naw, What the dog doin?, imma head out, Upgrades, people, more upgrades, Zoo wee mama, Deez Nuts, Shikanoko nokonoko Koshitantan, Only a spoonful, POV:, IS THAT A JOJO REFERENCE???, How bad can i be?, Why do i hear boss music, Aw shit here we go again, No, you are not a gamer\n \n Still water + adrenaline + noradrenaline + hawk tuah + anger issues + balkan parents + english or Spanish + german stare + Balkan rage + jonkler laugh +phonk + those who know=")
         await ctx.send("Ksi music + lunchly + winter arc + still water baths + nonadrenaline + flow state + MANGO MANGO phonk + Prime + Balkan\n \n Skibidi gyatt rizz only in ohio duke dennis did you pray today livvy dunne rizzing up baby gronk sussy imposter pibby glitch in real life sigma alpha omega male grindset andrew tate goon cave freddy fazbear colleen ballinger smurf cat vs strawberry elephant blud dawg shmlawg ishowspeed a whole bunch of turbulence ambatukam bro really thinks he s carti literally hitting the griddy the ocky way kai cenat fanum tax garten of banban no edging in class not the mosquito again bussing axel in harlem whopper whopper whopper whopper 1 2 buckle my shoe goofy ahh aiden ross sin city monday left me broken quirked up white boy busting it down sexual style goated with the sauce john pork grimace shake kiki do you love me huggy wuggy nathaniel b lightskin stare biggest bird omar the referee amogus uncanny wholesome reddit chungus keanu reeves pizza tower zesty poggers kumalala savesta quandale dingle glizzy rose toy ankha zone thug shaker morbin time dj khaled sisyphus oceangate shadow wizard money gang ayo the pizza here PLUH nair butthole waxing t-pose ugandan knuckles family guy funny moments compilation with subway surfers gameplay at the bottom nickeh30 ratio uwu delulu opium bird cg5 mewing fortnite battle pass all my fellas gta 6 backrooms gigachad based cringe kino redpilled no nut november pokénut november foot fetish F in the chat i love lean looksmaxxing gassy social credit bing chilling xbox live mrbeast kid named finger better caul saul i am a surgeon hit or miss i guess they never miss huh i like ya cut g ice spice gooning fr we go gym kevin james josh hutcherson coffin of andy and leyley metal pipe falling")
 
+music = bot.create_group("muisc")
+
+class musicbot(commands.Cog):
+    def __int__(self, client):
+        self.client = client
+        self.queue = []
+
+    @music.command()
+    async def play(self, ctx, *, search):
+        voice_channel = ctx.author.voice.channel if ctx.autohr.voice else None
+        if not voice_channel:
+            return await ctx.send("You are not connected to a voice channel")
+        if not ctx.voice_client:
+            await voice_channel.connect()
 
 
-music_queue = []
-voice_client = None
+        async with ctx.typing():
+            with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
+                info = ydl.extract_info(f"ytsearch:{search}", download=False)
+                if 'entries' in info:
+                    info = info['entries'][0]
+                url = info['url']
+                title = info['title']
+                self.queue.append(url, title)
+                await ctx.send(f"Added to queue: **{title}**")
+        if not ctx.voice_client.is_playing():
+            await self.playnext(ctx)
 
-# YouTube download options
-ytdl_format_options = {
-    'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-    'restrictfilenames': True,
-    'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto'
-}
+    async def playnext(self, ctx):
+        if self.queue:
+            url, title = self.queue.pop(0)
+            source = await discord.FFmpegOpusAudio.from_probe(url, **FFMPEG_OPTIONS)
+            ctx.voice_client.play(source, after=lambda _:self.client.loop.create_task(self.playnext(ctx)))
+            await ctx.send(f"Now playing: **{title}**")
+        elif not ctx.voice_client.is_playing():
+            await ctx.send("queue is empty")
 
-ffmpeg_options = {
-    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-    'options': '-vn'
-}
-
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
-
-
-# Join the voice channel
-async def ensure_voice(ctx):
-    global voice_client
-    if not ctx.author.voice:
-        await ctx.respond("You need to be in a voice channel first!")
-        return False
-    channel = ctx.author.voice.channel
-    if voice_client is None or not voice_client.is_connected():
-        voice_client = await channel.connect()
-    return True
-
-
-# Play music
-async def play_next(ctx):
-    if len(music_queue) > 0:
-        url = music_queue.pop(0)
-        data = ytdl.extract_info(url, download=False)
-        url2 = data['url']
-        voice_client.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
-        await ctx.send(f"Now playing: {data['title']}")
-    else:
-        await ctx.send("No more songs in the queue!")
+    @music.command()
+    async def skip(self, ctx):
+        if ctx.voice_client and ctx.voice_client.is_playing():
+            ctx.voice_client.stop()
+            await ctx.send("skipped")
 
 
 
-@bot.slash_command(name="music")
-async def music(ctx: discord.ApplicationContext):
-    # Create options for users to choose from
-    options = [
-        discord.SelectOption(label="Play", description="Play a song"),
-        discord.SelectOption(label="Pause", description="Pause the current song"),
-        discord.SelectOption(label="Skip", description="Skip the current song"),
-        discord.SelectOption(label="Stop", description="Stop the music and leave")
-    ]
 
-    select_menu = discord.ui.Select(placeholder="Choose a music command...", options=options, empheral=True)
 
-    async def select_callback(interaction):
-        choice = select_menu.values[0]
-
-        if choice == "Play":
-            await ctx.send("Please provide a YouTube URL to play.")
-
-            def check(m):
-                return m.author == ctx.author and m.channel == ctx.channel
-
-            try:
-                msg = await bot.wait_for('message', check=check, timeout=30)
-                music_queue.append(msg.content)
-                await ctx.send(f"Added to queue: {msg.content}")
-                if not voice_client or not voice_client.is_playing():
-                    await play_next(ctx)
-            except Exception as e:
-                await ctx.send("Error: Could not add song.")
-
-        elif choice == "Pause":
-            if voice_client and voice_client.is_playing():
-                voice_client.pause()
-                await ctx.send("Music paused.")
-            else:
-                await ctx.send("No music is currently playing.")
-
-        elif choice == "Skip":
-            if voice_client and voice_client.is_playing():
-                voice_client.stop()
-                await play_next(ctx)
-            else:
-                await ctx.send("No music is currently playing.")
-
-        elif choice == "Stop":
-            if voice_client:
-                await voice_client.disconnect()
-                await ctx.send("Music stopped and bot left the voice channel.")
-            else:
-                await ctx.send("Bot is not in a voice channel.")
-
-    select_menu.callback = select_callback
-    view = discord.ui.View()
-    view.add_item(select_menu)
-    await ctx.send("Select an option:", view=view)
 
 # SUPER SIGMA: Kick from another server's voice channel
 @bot.slash_command(name="super_sigma", guild=discord.Object(id=876802324192952320))
