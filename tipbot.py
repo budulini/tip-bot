@@ -83,7 +83,7 @@ async def kick_voice(ctx: discord.ApplicationContext, member: discord.Member):
         await ctx.respond(f"{member.mention} is not in a voice channel.", ephemeral=True)
 
 
-# WOLF Command for pinging multiple times
+# spam ping
 @bot.slash_command(name="wolf")
 async def wolf(ctx: discord.ApplicationContext, member: discord.Member, times: int):
     banned_user_id = 529381659208974346  # Replace with actual banned user ID
@@ -106,7 +106,7 @@ async def slovnik(ctx):
         await ctx.respond("The Classics: Skibidi, Grimace Shake, Fanum Tax, Doomscrolling, Chat, Kai Cenat, Edging, Rizzing, Gooning, Rizz, Rizzing, Sigma, Only in Ohio, 19 Dollar Fortnite card, Double Pump, Hitting the Griddy, Ice Spice, Level 100 Gyatt, Gooning cave, Discord Kitten, You make my heart burn\n \n Adjectives: Sus, Sussy, Sussy baka, Rizzler, Alpha, Beta, Sigma, Based, Chuds, Thot, Skibidi Sigma, Simp, Soyboy, Chads, Sturdy, Gamer, Incel, Cringe/Cringey, Furry, Discord Kitten, Streamer, Zesty, Boomer, Doomer, Coomer, Zoomer, Gooner, Goofy, Silly, Cracked at fortnite\n \n Brands/Franchises: Fortnite, Reddit, Youtube Shorts, TikTok, Mc Donalds, Gucci, Supreme, Discord, Roblox, Subway Surfers shorts, Family guy shorts, Tinder, Uber Eats,\n \n Streamers/People: Mr beast, Ice Spice, Kai cenat, Fanum, Caseoh, DaFuqBoom, Baby gronk, Master Oogway, Peter Griffin, Raven Team leader, Andrew tate, Ben Shapiro, Jordan Peterson, Elon Musk, Dababy, Lebron James, Kanye West.\n \n Sounds: Yeet, Oof, Leroy Jenkins, gyatt, Happy Happy Happy, Oh no!!\n \n Catchphrases: Leroy Jenkins, Hell naw, What the dog doin?, imma head out, Upgrades, people, more upgrades, Zoo wee mama, Deez Nuts, Shikanoko nokonoko Koshitantan, Only a spoonful, POV:, IS THAT A JOJO REFERENCE???, How bad can i be?, Why do i hear boss music, Aw shit here we go again, No, you are not a gamer\n \n Still water + adrenaline + noradrenaline + hawk tuah + anger issues + balkan parents + english or Spanish + german stare + Balkan rage + jonkler laugh +phonk + those who know=")
         await ctx.send("Ksi music + lunchly + winter arc + still water baths + nonadrenaline + flow state + MANGO MANGO phonk + Prime + Balkan\n \n Skibidi gyatt rizz only in ohio duke dennis did you pray today livvy dunne rizzing up baby gronk sussy imposter pibby glitch in real life sigma alpha omega male grindset andrew tate goon cave freddy fazbear colleen ballinger smurf cat vs strawberry elephant blud dawg shmlawg ishowspeed a whole bunch of turbulence ambatukam bro really thinks he s carti literally hitting the griddy the ocky way kai cenat fanum tax garten of banban no edging in class not the mosquito again bussing axel in harlem whopper whopper whopper whopper 1 2 buckle my shoe goofy ahh aiden ross sin city monday left me broken quirked up white boy busting it down sexual style goated with the sauce john pork grimace shake kiki do you love me huggy wuggy nathaniel b lightskin stare biggest bird omar the referee amogus uncanny wholesome reddit chungus keanu reeves pizza tower zesty poggers kumalala savesta quandale dingle glizzy rose toy ankha zone thug shaker morbin time dj khaled sisyphus oceangate shadow wizard money gang ayo the pizza here PLUH nair butthole waxing t-pose ugandan knuckles family guy funny moments compilation with subway surfers gameplay at the bottom nickeh30 ratio uwu delulu opium bird cg5 mewing fortnite battle pass all my fellas gta 6 backrooms gigachad based cringe kino redpilled no nut november pokénut november foot fetish F in the chat i love lean looksmaxxing gassy social credit bing chilling xbox live mrbeast kid named finger better caul saul i am a surgeon hit or miss i guess they never miss huh i like ya cut g ice spice gooning fr we go gym kevin james josh hutcherson coffin of andy and leyley metal pipe falling")
 
-music = bot.create_group("muisc")
+music = bot.create_group("music")
 
 class musicbot(commands.Cog):
     def __int__(self, client):
@@ -114,7 +114,7 @@ class musicbot(commands.Cog):
         self.queue = []
 
     @music.command()
-    async def play(self, ctx: discord.ApplicationContext, *, search):
+    async def play(ctx: discord.ApplicationContext, self, *, search):
         voice_channel = ctx.author.voice.channel if ctx.autohr.voice else None
         if not voice_channel:
             return await ctx.send("You are not connected to a voice channel")
@@ -134,7 +134,7 @@ class musicbot(commands.Cog):
         if not ctx.voice_client.is_playing():
             await self.playnext(ctx)
 
-    async def playnext(self, ctx):
+    async def playnext(ctx: discord.ApplicationContext, self):
         if self.queue:
             url, title = self.queue.pop(0)
             source = await discord.FFmpegOpusAudio.from_probe(url, **FFMPEG_OPTIONS)
@@ -154,7 +154,7 @@ class musicbot(commands.Cog):
 
 
 
-# SUPER SIGMA: Kick from another server's voice channel
+# cross server kicking
 @bot.slash_command(name="super_sigma", guild=discord.Object(id=876802324192952320))
 async def super_sigma(ctx: discord.ApplicationContext, target_guild_id: str, user_id: str):
     allowed_user_id = 587316682364813323  # Replace with actual allowed user ID
