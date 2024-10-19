@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import json
 import os
-import time
+import asyncio  # For asynchronous sleep
 from dotenv import load_dotenv
 import yt_dlp
 
@@ -98,18 +98,16 @@ async def wolf(ctx: discord.ApplicationContext, member: discord.Member, times: i
     await ctx.respond(f"Pinging {member.mention} {times} times.", ephemeral=True)
     for i in range(times):
         await ctx.send(f"{member.mention}")
-        time.sleep(0.5)  # Delay to avoid spam detection
+        await asyncio.sleep(0.5)  # Non-blocking sleep to avoid spam detection
+
 
 # Slovník
 @bot.slash_command(name="slovnik")
 async def slovnik(ctx):
-        await ctx.respond("The Classics: Skibidi, Grimace Shake, Fanum Tax, Doomscrolling, Chat, Kai Cenat, Edging, Rizzing, Gooning, Rizz, Rizzing, Sigma, Only in Ohio, 19 Dollar Fortnite card, Double Pump, Hitting the Griddy, Ice Spice, Level 100 Gyatt, Gooning cave, Discord Kitten, You make my heart burn\n \n Adjectives: Sus, Sussy, Sussy baka, Rizzler, Alpha, Beta, Sigma, Based, Chuds, Thot, Skibidi Sigma, Simp, Soyboy, Chads, Sturdy, Gamer, Incel, Cringe/Cringey, Furry, Discord Kitten, Streamer, Zesty, Boomer, Doomer, Coomer, Zoomer, Gooner, Goofy, Silly, Cracked at fortnite\n \n Brands/Franchises: Fortnite, Reddit, Youtube Shorts, TikTok, Mc Donalds, Gucci, Supreme, Discord, Roblox, Subway Surfers shorts, Family guy shorts, Tinder, Uber Eats,\n \n Streamers/People: Mr beast, Ice Spice, Kai cenat, Fanum, Caseoh, DaFuqBoom, Baby gronk, Master Oogway, Peter Griffin, Raven Team leader, Andrew tate, Ben Shapiro, Jordan Peterson, Elon Musk, Dababy, Lebron James, Kanye West.\n \n Sounds: Yeet, Oof, Leroy Jenkins, gyatt, Happy Happy Happy, Oh no!!\n \n Catchphrases: Leroy Jenkins, Hell naw, What the dog doin?, imma head out, Upgrades, people, more upgrades, Zoo wee mama, Deez Nuts, Shikanoko nokonoko Koshitantan, Only a spoonful, POV:, IS THAT A JOJO REFERENCE???, How bad can i be?, Why do i hear boss music, Aw shit here we go again, No, you are not a gamer\n \n Still water + adrenaline + noradrenaline + hawk tuah + anger issues + balkan parents + english or Spanish + german stare + Balkan rage + jonkler laugh +phonk + those who know=")
-        await ctx.send("Ksi music + lunchly + winter arc + still water baths + nonadrenaline + flow state + MANGO MANGO phonk + Prime + Balkan\n \n Skibidi gyatt rizz only in ohio duke dennis did you pray today livvy dunne rizzing up baby gronk sussy imposter pibby glitch in real life sigma alpha omega male grindset andrew tate goon cave freddy fazbear colleen ballinger smurf cat vs strawberry elephant blud dawg shmlawg ishowspeed a whole bunch of turbulence ambatukam bro really thinks he s carti literally hitting the griddy the ocky way kai cenat fanum tax garten of banban no edging in class not the mosquito again bussing axel in harlem whopper whopper whopper whopper 1 2 buckle my shoe goofy ahh aiden ross sin city monday left me broken quirked up white boy busting it down sexual style goated with the sauce john pork grimace shake kiki do you love me huggy wuggy nathaniel b lightskin stare biggest bird omar the referee amogus uncanny wholesome reddit chungus keanu reeves pizza tower zesty poggers kumalala savesta quandale dingle glizzy rose toy ankha zone thug shaker morbin time dj khaled sisyphus oceangate shadow wizard money gang ayo the pizza here PLUH nair butthole waxing t-pose ugandan knuckles family guy funny moments compilation with subway surfers gameplay at the bottom nickeh30 ratio uwu delulu opium bird cg5 mewing fortnite battle pass all my fellas gta 6 backrooms gigachad based cringe kino redpilled no nut november pokénut november foot fetish F in the chat i love lean looksmaxxing gassy social credit bing chilling xbox live mrbeast kid named finger better caul saul i am a surgeon hit or miss i guess they never miss huh i like ya cut g ice spice gooning fr we go gym kevin james josh hutcherson coffin of andy and leyley metal pipe falling")
+    await ctx.respond("The Classics: Skibidi, Grimace Shake, Fanum Tax, Doomscrolling, Chat, Kai Cenat, Edging, Rizzing, Gooning, Rizz, Rizzing, Sigma, Only in Ohio, 19 Dollar Fortnite card, Double Pump, Hitting the Griddy, Ice Spice, Level 100 Gyatt, Gooning cave, Discord Kitten, You make my heart burn\n \n Adjectives: Sus, Sussy, Sussy baka, Rizzler, Alpha, Beta, Sigma, Based, Chuds, Thot, Skibidi Sigma, Simp, Soyboy, Chads, Sturdy, Gamer, Incel, Cringe/Cringey, Furry, Discord Kitten, Streamer, Zesty, Boomer, Doomer, Coomer, Zoomer, Gooner, Goofy, Silly, Cracked at fortnite\n \n Brands/Franchises: Fortnite, Reddit, Youtube Shorts, TikTok, Mc Donalds, Gucci, Supreme, Discord, Roblox, Subway Surfers shorts, Family guy shorts, Tinder, Uber Eats,\n \n Streamers/People: Mr beast, Ice Spice, Kai cenat, Fanum, Caseoh, DaFuqBoom, Baby gronk, Master Oogway, Peter Griffin, Raven Team leader, Andrew tate, Ben Shapiro, Jordan Peterson, Elon Musk, Dababy, Lebron James, Kanye West.\n \n Sounds: Yeet, Oof, Leroy Jenkins, gyatt, Happy Happy Happy, Oh no!!\n \n Catchphrases: Leroy Jenkins, Hell naw, What the dog doin?, imma head out, Upgrades, people, more upgrades, Zoo wee mama, Deez Nuts, Shikanoko nokonoko Koshitantan, Only a spoonful, POV:, IS THAT A JOJO REFERENCE???, How bad can i be?, Why do i hear boss music, Aw shit here we go again, No, you are not a gamer\n \n Still water + adrenaline + noradrenaline + hawk tuah + anger issues + balkan parents + english or Spanish + german stare + Balkan rage + jonkler laugh +phonk + those who know=")
 
 
-
-
-def search_youtube(self, query):
+def search_youtube(query):
     ydl_opts = {
         'format': 'bestaudio',
         'noplaylist': 'True'
@@ -122,8 +120,9 @@ def search_youtube(self, query):
             return None
     return info['url']
 
+
 @bot.slash_command(name="join")
-async def join(self, ctx: discord.ApplicationContext):
+async def join(ctx: discord.ApplicationContext):
     if ctx.author.voice:
         channel = ctx.author.voice.channel
         if ctx.voice_client is not None:
@@ -133,23 +132,25 @@ async def join(self, ctx: discord.ApplicationContext):
     else:
         await ctx.respond("You need to be in a voice channel to use this command.")
 
+
 @bot.slash_command(name="leave")
-async def leave(self, ctx: discord.ApplicationContext):
+async def leave(ctx: discord.ApplicationContext):
     if ctx.voice_client:
         await ctx.voice_client.disconnect()
         await ctx.respond("Left the voice channel.")
     else:
         await ctx.respond("I'm not in a voice channel.")
 
+
 @bot.slash_command(name="play")
-async def play(self, ctx: discord.ApplicationContext, query: str):
+async def play(ctx: discord.ApplicationContext, query: str):
     voice_client = ctx.guild.voice_client
 
     if not voice_client:
         await ctx.respond("I'm not connected to a voice channel.")
         return
 
-    url = self.search_youtube(query)
+    url = search_youtube(query)
 
     if not url:
         await ctx.respond("Could not find the song.")
@@ -164,8 +165,9 @@ async def play(self, ctx: discord.ApplicationContext, query: str):
     except Exception as e:
         await ctx.respond(f"Error playing the song: {e}")
 
+
 @bot.slash_command(name="pause")
-async def pause(self, ctx: discord.ApplicationContext):
+async def pause(ctx: discord.ApplicationContext):
     voice_client = ctx.guild.voice_client
     if voice_client and voice_client.is_playing():
         voice_client.pause()
@@ -173,8 +175,9 @@ async def pause(self, ctx: discord.ApplicationContext):
     else:
         await ctx.respond("No song is currently playing.")
 
+
 @bot.slash_command(name="resume")
-async def resume(self, ctx: discord.ApplicationContext):
+async def resume(ctx: discord.ApplicationContext):
     voice_client = ctx.guild.voice_client
     if voice_client and voice_client.is_paused():
         voice_client.resume()
@@ -182,8 +185,9 @@ async def resume(self, ctx: discord.ApplicationContext):
     else:
         await ctx.respond("No song is currently paused.")
 
+
 @bot.slash_command(name="stop")
-async def stop(self, ctx: discord.ApplicationContext):
+async def stop(ctx: discord.ApplicationContext):
     voice_client = ctx.guild.voice_client
     if voice_client and voice_client.is_playing():
         voice_client.stop()
@@ -223,17 +227,14 @@ async def super_sigma(ctx: discord.ApplicationContext, target_guild_id: str, use
         await ctx.respond(f"{member.name} is not in a voice channel on {target_guild.name}.", ephemeral=True)
 
 
-
 # Event when bot is ready
 @bot.event
 async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.playing, name="with honík")
     await bot.change_presence(activity=activity)
     load_scores()
-
     await bot.sync_commands()
     print(f"{bot.user} is online!")
-
 
 
 def runBot():
