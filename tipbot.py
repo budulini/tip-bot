@@ -107,45 +107,89 @@ async def slovnik(ctx):
         await ctx.send("Ksi music + lunchly + winter arc + still water baths + nonadrenaline + flow state + MANGO MANGO phonk + Prime + Balkan\n \n Skibidi gyatt rizz only in ohio duke dennis did you pray today livvy dunne rizzing up baby gronk sussy imposter pibby glitch in real life sigma alpha omega male grindset andrew tate goon cave freddy fazbear colleen ballinger smurf cat vs strawberry elephant blud dawg shmlawg ishowspeed a whole bunch of turbulence ambatukam bro really thinks he s carti literally hitting the griddy the ocky way kai cenat fanum tax garten of banban no edging in class not the mosquito again bussing axel in harlem whopper whopper whopper whopper 1 2 buckle my shoe goofy ahh aiden ross sin city monday left me broken quirked up white boy busting it down sexual style goated with the sauce john pork grimace shake kiki do you love me huggy wuggy nathaniel b lightskin stare biggest bird omar the referee amogus uncanny wholesome reddit chungus keanu reeves pizza tower zesty poggers kumalala savesta quandale dingle glizzy rose toy ankha zone thug shaker morbin time dj khaled sisyphus oceangate shadow wizard money gang ayo the pizza here PLUH nair butthole waxing t-pose ugandan knuckles family guy funny moments compilation with subway surfers gameplay at the bottom nickeh30 ratio uwu delulu opium bird cg5 mewing fortnite battle pass all my fellas gta 6 backrooms gigachad based cringe kino redpilled no nut november pokénut november foot fetish F in the chat i love lean looksmaxxing gassy social credit bing chilling xbox live mrbeast kid named finger better caul saul i am a surgeon hit or miss i guess they never miss huh i like ya cut g ice spice gooning fr we go gym kevin james josh hutcherson coffin of andy and leyley metal pipe falling")
 
 
-class musicbot(commands.Cog):
-    def __int__(self, client):
-        self.client = client
-        self.queue = []
 
-    @bot.slash_command()
-    async def play(self, ctx: discord.ApplicationContext, *, search):
-        voice_channel = ctx.author.voice.channel if ctx.autohr.voice else None
-        if not voice_channel:
-            return await ctx.send("You are not connected to a voice channel")
-        if not ctx.voice_client:
-            await voice_channel.connect()
 
-        async with ctx.typing():
-            with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
-                info = ydl.extract_info(f"ytsearch:{search}", download=False)
-                if 'entries' in info:
-                    info = info['entries'][0]
-                url = info['url']
-                title = info['title']
-                self.queue.append(url, title)
-                await ctx.send(f"Added to queue: **{title}**")
-        if not ctx.voice_client.is_playing():
-            await self.playnext(ctx)
+def search_youtube(self, query):
+    ydl_opts = {
+        'format': 'bestaudio',
+        'noplaylist': 'True'
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(f"ytsearch:{query}", download=False)['entries'][0]
+        except Exception as e:
+            print(f"Error searching YouTube: {e}")
+            return None
+    return info['url']
 
-    async def playnext(self, ctx: discord.ApplicationContext):
-        if self.queue:
-            url, title = self.queue.pop(0)
-            source = await discord.FFmpegOpusAudio.from_probe(url, **FFMPEG_OPTIONS)
-            ctx.voice_client.play(source, after=lambda _:self.client.loop.create_task(self.playnext(ctx)))
-            await ctx.send(f"Now playing: **{title}**")
-        elif not ctx.voice_client.is_playing():
-            await ctx.send("queue is empty")
+@bot.slash_command(name="join")
+async def join(self, ctx: discord.ApplicationContext):
+    if ctx.author.voice:
+        channel = ctx.author.voice.channel
+        if ctx.voice_client is not None:
+            return await ctx.voice_client.move_to(channel)
+        await channel.connect()
+        await ctx.respond(f"Joined {channel}")
+    else:
+        await ctx.respond("You need to be in a voice channel to use this command.")
 
-    @bot.slash_command()
-    async def skip(self, ctx: discord.ApplicationContext):
-        if ctx.voice_client and ctx.voice_client.is_playing():
-            ctx.voice_client.stop()
-            await ctx.send("skipped")
+@bot.slash_command(name="leave")
+async def leave(self, ctx: discord.ApplicationContext):
+    if ctx.voice_client:
+        await ctx.voice_client.disconnect()
+        await ctx.respond("Left the voice channel.")
+    else:
+        await ctx.respond("I'm not in a voice channel.")
+
+@bot.slash_command(name="play")
+async def play(self, ctx: discord.ApplicationContext, query: str):
+    voice_client = ctx.guild.voice_client
+
+    if not voice_client:
+        await ctx.respond("I'm not connected to a voice channel.")
+        return
+
+    url = self.search_youtube(query)
+
+    if not url:
+        await ctx.respond("Could not find the song.")
+        return
+
+    if voice_client.is_playing():
+        voice_client.stop()
+
+    try:
+        voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: print(f"Error: {e}") if e else None)
+        await ctx.respond(f"Now playing: {query}")
+    except Exception as e:
+        await ctx.respond(f"Error playing the song: {e}")
+
+@bot.slash_command(name="pause")
+async def pause(self, ctx: discord.ApplicationContext):
+    voice_client = ctx.guild.voice_client
+    if voice_client and voice_client.is_playing():
+        voice_client.pause()
+        await ctx.respond("Paused the song.")
+    else:
+        await ctx.respond("No song is currently playing.")
+
+@bot.slash_command(name="resume")
+async def resume(self, ctx: discord.ApplicationContext):
+    voice_client = ctx.guild.voice_client
+    if voice_client and voice_client.is_paused():
+        voice_client.resume()
+        await ctx.respond("Resumed the song.")
+    else:
+        await ctx.respond("No song is currently paused.")
+
+@bot.slash_command(name="stop")
+async def stop(self, ctx: discord.ApplicationContext):
+    voice_client = ctx.guild.voice_client
+    if voice_client and voice_client.is_playing():
+        voice_client.stop()
+        await ctx.respond("Stopped the song.")
+    else:
+        await ctx.respond("No song is currently playing.")
 
 
 # cross server kicking
