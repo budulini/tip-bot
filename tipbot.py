@@ -5,6 +5,8 @@ import os
 import asyncio
 from dotenv import load_dotenv
 import yt_dlp
+import logging
+import sys
 
 load_dotenv()
 
@@ -20,6 +22,13 @@ SCORES_FILE = "stats/scores.json"
 FFMPEG_OPTIONS = {'options': '-vn'}
 YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
 
+def ensure_opus():
+    if not discord.opus.is_loaded():
+        try:
+            discord.opus.load_opus()
+            print("Opus library loaded successfully.")
+        except Exception as e:
+            print(f"Failed to load Opus: {e}")
 
 # Load scores from a file
 def load_scores():
@@ -83,7 +92,7 @@ async def join(ctx: discord.ApplicationContext):
         if ctx.voice_client is not None:
             return await ctx.voice_client.move_to(channel)
         await channel.connect()
-        discord.opus.load_opus()
+        ensure_opus()
         await ctx.respond(f"Joined {channel}")
     else:
         await ctx.respond("You need to be in a voice channel to use this command.")
@@ -111,6 +120,7 @@ async def play(ctx: discord.ApplicationContext, query: str):
         await join(ctx)  # Automatically join the voice channel if not connected
         voice_client = ctx.guild.voice_client  # Update the voice_client variable
 
+    ensure_opus()
     url = search_youtube(query)
 
     if not url:
@@ -154,6 +164,19 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.playing, name="with honík")
     await bot.change_presence(activity=activity)
     load_scores()
+    # Set up logging to a file
+    logging.basicConfig(
+        level=logging.NOTSET,  # Set the logging level (INFO, DEBUG, etc.)
+        format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
+        handlers=[
+            logging.FileHandler('bot.log'),  # Log to the file
+            logging.StreamHandler(sys.stdout)  # Log to the console
+        ]
+    )
+    ensure_opus()
+
+    # Example log entry to test
+    logging.info("Bot started")
     print(f"{bot.user} is online!")
 
 
