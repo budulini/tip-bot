@@ -114,7 +114,7 @@ class musicbot(commands.Cog):
         self.queue = []
 
     @music.command()
-    async def play(self, ctx, *, search):
+    async def play(self, ctx: discord.ApplicationContext, *, search):
         voice_channel = ctx.author.voice.channel if ctx.autohr.voice else None
         if not voice_channel:
             return await ctx.send("You are not connected to a voice channel")
@@ -133,7 +133,7 @@ class musicbot(commands.Cog):
         if not ctx.voice_client.is_playing():
             await self.playnext(ctx)
 
-    async def playnext(self, ctx):
+    async def playnext(self, ctx: discord.ApplicationContext):
         if self.queue:
             url, title = self.queue.pop(0)
             source = await discord.FFmpegOpusAudio.from_probe(url, **FFMPEG_OPTIONS)
@@ -147,10 +147,6 @@ class musicbot(commands.Cog):
         if ctx.voice_client and ctx.voice_client.is_playing():
             ctx.voice_client.stop()
             await ctx.send("skipped")
-
-
-
-
 
 
 # cross server kicking
