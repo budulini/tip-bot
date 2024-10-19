@@ -166,7 +166,7 @@ async def on_ready():
     load_scores()
     # Set up logging to a file
     logging.basicConfig(
-        level=logging.INFO,  # Set the logging level (INFO, DEBUG, etc.)
+        level=logging.NOTSET,  # Set the logging level (INFO, DEBUG, etc.)
         format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
         handlers=[
             logging.FileHandler('bot.log'),  # Log to the file
