@@ -5,6 +5,7 @@ import os
 import asyncio
 from dotenv import load_dotenv
 import yt_dlp
+import logging
 
 load_dotenv()
 
@@ -154,6 +155,11 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.playing, name="with honík")
     await bot.change_presence(activity=activity)
     load_scores()
+    # Set up logging to a file
+    logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    # Example log entry
+    logging.info("Bot started")
     print(f"{bot.user} is online!")
 
 
