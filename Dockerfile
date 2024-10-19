@@ -4,6 +4,12 @@ FROM python:3.13
 # Set the working directory inside the container
 WORKDIR /app
 
+# Install ffmpeg and libopus
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libopus-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy requirements.txt first (for dependency caching)
 COPY requirements.txt .
 
