@@ -16,7 +16,7 @@ intents.members = True  # Enable intents to use member data for commands
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-SCORES_FILE = "stats/scores.json"
+SCORES_FILE = "files/scores.json"
 FFMPEG_OPTIONS = {'options': '-vn'}
 YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
 
@@ -74,6 +74,53 @@ async def leaderboard(ctx: discord.ApplicationContext):
         leaderboard_message += f"{i + 1}. {member.mention if member else '[Unknown Member]'} - {score} points\n"
     await ctx.respond(leaderboard_message, ephemeral=True)
 
+
+# KICK FROM VOICE CHANNEL
+@bot.slash_command(name="sigma")
+async def kick_voice(ctx: discord.ApplicationContext, member: discord.Member):
+    allowed_user_id = 587316682364813323  # Replace with actual allowed user ID
+    if ctx.user.id != allowed_user_id:
+        await ctx.respond("You do not have permission to use this command.", ephemeral=True)
+        return
+
+    if member.voice and member.voice.channel:
+        await member.move_to(None)  # Kick the member from the voice channel
+        await ctx.respond(f"{member.mention} has been removed from the voice channel.", ephemeral=True)
+    else:
+        await ctx.respond(f"{member.mention} is not in a voice channel.", ephemeral=True)
+
+
+# spam ping
+@bot.slash_command(name="wolf")
+async def wolf(ctx: discord.ApplicationContext, member: discord.Member, times: int):
+    banned_user_id = 529381659208974346  # wolf
+    if ctx.user.id == banned_user_id:
+        await ctx.respond("You are not allowed to use this command.", ephemeral=True)
+        return
+
+    if times < 1 or times > 10:
+        await ctx.respond("Please enter a number between 1 and 10.", ephemeral=True)
+        return
+
+    await ctx.respond(f"Pinging {member.mention} {times} times.", ephemeral=True)
+    for i in range(times):
+        await ctx.send(f"{member.mention}")
+        await asyncio.sleep(0.5)
+
+
+# Slovník
+slovnik1path = "files/slovnik1.txt"
+slovnik2path = "files/slovnik2.txt"
+
+@bot.slash_command(name="slovnik")
+async def slovnik(ctx):
+    with open(slovnik1path, 'r', encoding='utf-8') as file:
+        text1 = file.read()
+        await ctx.respond(text1)
+    with open(slovnik2path, 'r', encoding='utf-8') as file:
+        text2 = file.read()
+        await ctx.send(text2)
+        
 
 # JOIN Voice Channel Command
 @bot.slash_command(name="join")
