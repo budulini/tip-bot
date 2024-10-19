@@ -114,13 +114,12 @@ class musicbot(commands.Cog):
         self.queue = []
 
     @music.command()
-    async def play(ctx: discord.ApplicationContext, self, *, search):
+    async def play(self, ctx, *, search):
         voice_channel = ctx.author.voice.channel if ctx.autohr.voice else None
         if not voice_channel:
             return await ctx.send("You are not connected to a voice channel")
         if not ctx.voice_client:
             await voice_channel.connect()
-
 
         async with ctx.typing():
             with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
@@ -134,7 +133,7 @@ class musicbot(commands.Cog):
         if not ctx.voice_client.is_playing():
             await self.playnext(ctx)
 
-    async def playnext(ctx: discord.ApplicationContext, self):
+    async def playnext(self, ctx):
         if self.queue:
             url, title = self.queue.pop(0)
             source = await discord.FFmpegOpusAudio.from_probe(url, **FFMPEG_OPTIONS)
