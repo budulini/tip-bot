@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import yt_dlp
 import logging
 import sys
-import datetime
+from datetime import datetime, time
 
 load_dotenv()
 
@@ -22,6 +22,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 SCORES_FILE = "files/scores.json"
 FFMPEG_OPTIONS = {'options': '-vn'}
 YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
+start_time = None
 
 def ensure_opus():
     if not discord.opus.is_loaded():
@@ -152,7 +153,7 @@ async def bigben():
 async def time_based_trigger():
     while True:
         now = datetime.now().time()
-        target_times = [time(0, 0), time(13, 28)]  # 12:00 AM and 12:00 PM
+        target_times = [time(0, 0), time(13, 35)]  # 12:00 AM and 12:00 PM
 
         if any(now.hour == target_time.hour and now.minute == target_time.minute for target_time in target_times):
             print("Triggering Big Ben function")
@@ -174,6 +175,14 @@ async def slovnik(ctx):
     with open(slovnik2path, 'r', encoding='utf-8') as file:
         text2 = file.read()
         await ctx.send(text2)
+
+@bot.slash_command(name="uptime")
+async def uptime(ctx: discord.ApplicationContext):
+    current_time = datetime.utcnow()  # Get the current time
+    uptime_duration = current_time - start_time  # Calculate the difference
+    hours, remainder = divmod(int(uptime_duration.total_seconds()), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    await ctx.respond(f"Bot has been online for {hours} hours, {minutes} minutes, and {seconds} seconds.")
 
 
 # JOIN Voice Channel Command
@@ -266,7 +275,8 @@ async def on_ready():
         ]
     )
     ensure_opus()
-
+    global start_time
+    start_time = datetime.utcnow()
     # Example log entry to test
     logging.info("Bot started")
     print(f"{bot.user} is online!")
