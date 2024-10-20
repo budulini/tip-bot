@@ -122,7 +122,7 @@ async def wolf(ctx: discord.ApplicationContext, member: discord.Member, times: i
 
 
 async def bigben():
-    voice_channel_id = 1128773296150810674 # Replace with your voice channel ID
+    voice_channel_id = 1128735809776910349 # Replace with your voice channel ID
     channel = bot.get_channel(voice_channel_id)
 
     if channel is None:
@@ -138,7 +138,7 @@ async def bigben():
 
     voice_client = bot.voice_clients[0]
 
-    url = "https://www.youtube.com/watch?v=E9wWBjnaEck"  # Replace with Big Ben sound URL
+    url = "https://www.youtube.com/watch?v=E9wWBjnaEck"
 
     if voice_client.is_playing():
         voice_client.stop()
@@ -153,7 +153,7 @@ async def bigben():
 async def time_based_trigger():
     while True:
         now = datetime.now().time()
-        target_times = [time(0, 0), time(15, 15), time(12, 12)]  # 12:00 AM and 12:00 PM
+        target_times = [time(0, 0), time(16, 20), time(12, 12)]  # 12:00 AM and 12:00 PM
 
         if any(now.hour == target_time.hour and now.minute == target_time.minute for target_time in target_times):
             print("Triggering Big Ben function")
