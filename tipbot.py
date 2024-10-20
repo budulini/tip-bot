@@ -27,7 +27,7 @@ start_time = None
 def ensure_opus():
     if not discord.opus.is_loaded():
         try:
-            discord.opus.load_opus()
+            discord.opus.load_opus("/opt/homebrew/Cellar/opus/1.5.2/lib/libopus.0.dylib")
             print("Opus library loaded successfully.")
         except Exception as e:
             print(f"Failed to load Opus: {e}")
@@ -267,7 +267,7 @@ async def on_ready():
     load_scores()
     # Set up logging to a file
     logging.basicConfig(
-        level=logging.NOTSET,  # Set the logging level (INFO, DEBUG, etc.)
+        level=logging.ERROR,  # Set the logging level (INFO, DEBUG, etc.)
         format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
         handlers=[
             logging.FileHandler('bot.log'),  # Log to the file
