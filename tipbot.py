@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import yt_dlp
 import logging
 import sys
+import schedule
 
 load_dotenv()
 
@@ -116,6 +117,32 @@ async def wolf(ctx: discord.ApplicationContext, member: discord.Member, times: i
         await ctx.send(f"{member.mention}")
         await asyncio.sleep(0.5)
 
+# big ben
+async def bigben(ctx: discord.ApplicationContext):
+    channel =1128735809776910349
+    if ctx.voice_client is not None:
+        return await ctx.voice_client.move_to(channel)
+    await channel.connect()
+    ensure_opus()
+
+    await ctx.defer()
+
+    voice_client = ctx.guild.voice_client
+
+    ensure_opus()
+    url = "https://www.youtube.com/watch?v=E9wWBjnaEck"
+
+
+    if voice_client.is_playing():
+        voice_client.stop()
+
+    try:
+        voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: print(f"Error: {e}") if e else None)
+    except Exception as e:
+        await ctx.followup.send(f"Error bigben: {e}")
+
+schedule.every().day.at("13:10").do(bigben)
+
 
 # Slovník
 slovnik1path = "files/slovnik1.txt"
@@ -129,7 +156,7 @@ async def slovnik(ctx):
     with open(slovnik2path, 'r', encoding='utf-8') as file:
         text2 = file.read()
         await ctx.send(text2)
-        
+
 
 # JOIN Voice Channel Command
 @bot.slash_command(name="join")
