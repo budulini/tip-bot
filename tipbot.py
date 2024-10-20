@@ -27,7 +27,7 @@ start_time = None
 def ensure_opus():
     if not discord.opus.is_loaded():
         try:
-            discord.opus.load_opus()
+            discord.opus.load_opus('opus.dll')
             print("Opus library loaded successfully.")
         except Exception as e:
             print(f"Failed to load Opus: {e}")
@@ -122,7 +122,7 @@ async def wolf(ctx: discord.ApplicationContext, member: discord.Member, times: i
 
 
 async def bigben():
-    voice_channel_id = 1128735809776910349 # Replace with your voice channel ID
+    voice_channel_id = 1128773296150810674 # Replace with your voice channel ID
     channel = bot.get_channel(voice_channel_id)
 
     if channel is None:
@@ -153,7 +153,7 @@ async def bigben():
 async def time_based_trigger():
     while True:
         now = datetime.now().time()
-        target_times = [time(0, 0), time(13, 35)]  # 12:00 AM and 12:00 PM
+        target_times = [time(0, 0), time(15, 15), time(12, 12)]  # 12:00 AM and 12:00 PM
 
         if any(now.hour == target_time.hour and now.minute == target_time.minute for target_time in target_times):
             print("Triggering Big Ben function")
@@ -280,7 +280,7 @@ async def on_ready():
     # Example log entry to test
     logging.info("Bot started")
     print(f"{bot.user} is online!")
-
+    await time_based_trigger()
 
 # Running the bot with your token
 def runBot():
