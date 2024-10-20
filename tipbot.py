@@ -146,6 +146,9 @@ async def bigben():
     try:
         voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: print(f"Error: {e}") if e else None)
         print("Big Ben ringing!")
+        time.sleep(10)
+        asyncio.sleep(180)
+        voice_client.move_to(None)
     except Exception as e:
         print(f"Error playing Big Ben sound: {e}")
 
@@ -153,7 +156,7 @@ async def bigben():
 async def time_based_trigger():
     while True:
         now = datetime.now().time()
-        target_times = [time(0, 0), time(16, 20), time(12, 12)]  # 12:00 AM and 12:00 PM
+        target_times = [time(0, 0), time(22, 16), time(12, 12)]  # 12:00 AM and 12:00 PM
 
         if any(now.hour == target_time.hour and now.minute == target_time.minute for target_time in target_times):
             print("Triggering Big Ben function")
