@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import yt_dlp
 import logging
 import sys
-import schedule
+import datetime
 
 load_dotenv()
 
@@ -117,31 +117,49 @@ async def wolf(ctx: discord.ApplicationContext, member: discord.Member, times: i
         await ctx.send(f"{member.mention}")
         await asyncio.sleep(0.5)
 
-# big ben
-async def bigben(ctx: discord.ApplicationContext):
-    channel =1128735809776910349
-    if ctx.voice_client is not None:
-        return await ctx.voice_client.move_to(channel)
-    await channel.connect()
-    ensure_opus()
 
-    await ctx.defer()
 
-    voice_client = ctx.guild.voice_client
 
-    ensure_opus()
-    url = "https://www.youtube.com/watch?v=E9wWBjnaEck"
+async def bigben():
+    voice_channel_id = 1128735809776910349 # Replace with your voice channel ID
+    channel = bot.get_channel(voice_channel_id)
 
+    if channel is None:
+        print("Voice channel not found.")
+        return
+
+    if bot.voice_clients:
+        voice_client = bot.voice_clients[0]
+        if voice_client.channel != channel:
+            await voice_client.move_to(channel)
+    else:
+        await channel.connect()
+
+    voice_client = bot.voice_clients[0]
+
+    url = "https://www.youtube.com/watch?v=E9wWBjnaEck"  # Replace with Big Ben sound URL
 
     if voice_client.is_playing():
         voice_client.stop()
 
     try:
         voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: print(f"Error: {e}") if e else None)
+        print("Big Ben ringing!")
     except Exception as e:
-        await ctx.followup.send(f"Error bigben: {e}")
+        print(f"Error playing Big Ben sound: {e}")
 
-schedule.every().day.at("13:10").do(bigben)
+
+async def time_based_trigger():
+    while True:
+        now = datetime.now().time()
+        target_times = [time(0, 0), time(13, 28)]  # 12:00 AM and 12:00 PM
+
+        if any(now.hour == target_time.hour and now.minute == target_time.minute for target_time in target_times):
+            print("Triggering Big Ben function")
+            await bigben()
+            await asyncio.sleep(60)  # Wait 60 seconds to avoid multiple triggers within the same minute
+        else:
+            await asyncio.sleep(10)  # Check every 10 seconds
 
 
 # Slovník
