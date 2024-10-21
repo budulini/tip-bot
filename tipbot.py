@@ -28,8 +28,10 @@ def ensure_opus():
     if not discord.opus.is_loaded():
         try:
             discord.opus.load_opus()
+            logging.info("Opus library loaded successfully.")
             print("Opus library loaded successfully.")
         except Exception as e:
+            logging.error(f"Failed to load Opus: {e}")
             print(f"Failed to load Opus: {e}")
 
 # Load scores from a file
@@ -41,9 +43,11 @@ def load_scores():
                 user_scores = {int(user_id): score for user_id, score in json.load(file).items()}
                 print("Loaded scores:", user_scores)
         except json.JSONDecodeError:
+            logging.error("Error: Invalid JSON format. Starting with an empty score.")
             print("Error: Invalid JSON format. Starting with an empty score.")
             user_scores = {}
         except Exception as error:
+            logging.error(f"Error loading scores: {error}")
             print(f"Error loading scores: {error}")
             user_scores = {}
     else:
@@ -150,6 +154,7 @@ async def bigben():
         asyncio.sleep(180)
         voice_client.move_to(None)
     except Exception as e:
+        logging.error(f"Error playing Big Ben sound: {e}")
         print(f"Error playing Big Ben sound: {e}")
 
 
@@ -238,6 +243,7 @@ async def play(ctx: discord.ApplicationContext, query: str):
         voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: print(f"Error: {e}") if e else None)
         await ctx.followup.send(f"Now playing: {query}")
     except Exception as e:
+        logging.error(f"Error playing the song: {e}")
         await ctx.followup.send(f"Error playing the song: {e}")
 
 
