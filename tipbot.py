@@ -27,7 +27,7 @@ start_time = None
 def ensure_opus():
     if not discord.opus.is_loaded():
         try:
-            discord.opus.load_opus("/opt/homebrew/Cellar/opus/1.5.2/lib/libopus.0.dylib")
+            discord.opus.load_opus()
             print("Opus library loaded successfully.")
         except Exception as e:
             print(f"Failed to load Opus: {e}")
@@ -222,7 +222,7 @@ async def play(ctx: discord.ApplicationContext, query: str):
 
     if not voice_client:
         await join(ctx)  # Automatically join the voice channel if not connected
-        voice_client = ctx.guild.voice_client  # Update the voice_client variable
+        #voice_client = ctx.guild.voice_client  # Update the voice_client variable
 
     ensure_opus()
     url = search_youtube(query)
@@ -270,7 +270,7 @@ async def on_ready():
     load_scores()
     # Set up logging to a file
     logging.basicConfig(
-        level=logging.ERROR,  # Set the logging level (INFO, DEBUG, etc.)
+        level=logging.DEBUG,  # Set the logging level (INFO, DEBUG, etc.)
         format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
         handlers=[
             logging.FileHandler('bot.log'),  # Log to the file
