@@ -163,12 +163,16 @@ async def time_based_trigger():
         now = datetime.now().time()
         target_times = [time(0, 0), time(22, 16), time(12, 12)]  # 12:00 AM and 12:00 PM
 
+
+
         if any(now.hour == target_time.hour and now.minute == target_time.minute for target_time in target_times):
             print("Triggering Big Ben function")
             await bigben()
-            await asyncio.sleep(60)  # Wait 60 seconds to avoid multiple triggers within the same minute
+            sleep_for = min(target_time - now for target_time in target_times)
+            await asyncio.sleep(sleep_for)  # Wait 60 seconds to avoid multiple triggers within the same minute
         else:
-            await asyncio.sleep(10)  # Check every 10 seconds
+            sleep_for = min(target_time - now for target_time in target_times)
+            await asyncio.sleep(sleep_for)  # Check every 10 seconds
 
 
 # Slovník
