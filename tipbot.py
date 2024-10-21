@@ -27,7 +27,7 @@ start_time = None
 def ensure_opus():
     if not discord.opus.is_loaded():
         try:
-            discord.opus.load_opus()
+            discord.opus.load_opus("libopus.so.0")  # Load the Opus library
             logging.info("Opus library loaded successfully.")
             print("Opus library loaded successfully.")
         except Exception as e:
