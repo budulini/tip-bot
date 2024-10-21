@@ -159,19 +159,17 @@ async def bigben():
 
 
 async def time_based_trigger():
+    target_times = [time(0, 0), time(22, 16), time(12, 12)]  # 12:00 AM and 12:00 PM
     while True:
         now = datetime.now().time()
-        target_times = [time(0, 0), time(22, 16), time(12, 12)]  # 12:00 AM and 12:00 PM
-
-
 
         if any(now.hour == target_time.hour and now.minute == target_time.minute for target_time in target_times):
             print("Triggering Big Ben function")
             await bigben()
-            sleep_for = min(target_time - now for target_time in target_times)
+            sleep_for = min(target_time.minute - now.minute and target_time.hour - target_time.hour for target_time in target_times)
             await asyncio.sleep(sleep_for)  # Wait 60 seconds to avoid multiple triggers within the same minute
         else:
-            sleep_for = min(target_time - now for target_time in target_times)
+            sleep_for = min(target_time.minute - now.minute and target_time.hour - target_time.hour for target_time in target_times)
             await asyncio.sleep(sleep_for)  # Check every 10 seconds
 
 
