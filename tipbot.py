@@ -1,3 +1,5 @@
+from pydoc import describe
+
 import discord
 from discord.ext import commands
 import json
@@ -24,15 +26,21 @@ FFMPEG_OPTIONS = {'options': '-vn'}
 YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
 start_time = None
 
+target_times = [time(22, 0), time(10, 00)]  # 12:00 AM and 12:00 PM
+
 def ensure_opus():
     if not discord.opus.is_loaded():
         try:
-            discord.opus.load_opus("libopus.so.0")  # Load the Opus library
+            # Try different locations based on platform/environment
+            discord.opus.load_opus("libopus.so.0")  # Linux
             logging.info("Opus library loaded successfully.")
-            print("Opus library loaded successfully.")
-        except Exception as e:
-            logging.error(f"Failed to load Opus: {e}")
-            print(f"Failed to load Opus: {e}")
+        except OSError:
+            try:
+                discord.opus.load_opus("opus.dll")  # Windows
+                logging.info("Opus library loaded successfully on Windows.")
+            except Exception as e:
+                logging.error(f"Failed to load Opus: {e}")
+                print(f"Failed to load Opus: {e}")
 
 # Load scores from a file
 def load_scores():
@@ -150,8 +158,8 @@ async def bigben():
     try:
         voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: print(f"Error: {e}") if e else None)
         print("Big Ben ringing!")
-        time.sleep(10)
-        asyncio.sleep(180)
+        #time.sleep(10)
+        await asyncio.sleep(180)
         voice_client.move_to(None)
     except Exception as e:
         logging.error(f"Error playing Big Ben sound: {e}")
@@ -159,18 +167,24 @@ async def bigben():
 
 
 async def time_based_trigger():
-    target_times = [time(0, 0), time(22, 16), time(12, 12)]  # 12:00 AM and 12:00 PM
+    global target_times
+
     while True:
         now = datetime.now().time()
+        current_minutes = now.hour * 60 + now.minute
 
-        if any(now.hour == target_time.hour and now.minute == target_time.minute for target_time in target_times):
+        target_minutes = [
+            target_time.hour * 60 + target_time.minute for target_time in target_times
+        ]
+
+        next_target = min(target_minutes, key=lambda t: (t - current_minutes) % (24 * 60))  # Find the next time event
+
+        if next_target == current_minutes:
             print("Triggering Big Ben function")
             await bigben()
-            sleep_for = min(target_time.minute - now.minute and target_time.hour - target_time.hour for target_time in target_times)
-            await asyncio.sleep(sleep_for)  # Wait 60 seconds to avoid multiple triggers within the same minute
-        else:
-            sleep_for = min(target_time.minute - now.minute and target_time.hour - target_time.hour for target_time in target_times)
-            await asyncio.sleep(sleep_for)  # Check every 10 seconds
+
+        sleep_for = (next_target - current_minutes) % (24 * 60)  # Handle time differences crossing midnight
+        await asyncio.sleep(sleep_for * 60)  # Convert to seconds
 
 
 # Slovník
@@ -194,6 +208,55 @@ async def uptime(ctx: discord.ApplicationContext):
     minutes, seconds = divmod(remainder, 60)
     await ctx.respond(f"Bot has been online for {hours} hours, {minutes} minutes, and {seconds} seconds.")
 
+
+# Function to add, remove, or show target times
+@bot.slash_command(name="time_manager", description="Manage the target times for the bot")
+async def time_manager(ctx: discord.ApplicationContext, action: str, hour: int = None, minute: int = None):
+    """
+    Manage target times: add, remove, or show.
+
+    :param ctx: Discord command context.
+    :param action: 'add', 'remove', or 'show'.
+    :param hour: Optional, hour for the time (required for 'add' or 'remove').
+    :param minute: Optional, minute for the time (required for 'add' or 'remove').
+    """
+    global target_times
+
+    if action.lower() == 'show':
+        # Show the current target times
+        times_list = ', '.join([f"{t.hour:02d}:{t.minute:02d}" for t in target_times])
+        if times_list:
+            await ctx.respond(f"Current target times are: {times_list}")
+        else:
+            await ctx.respond("There are no target times set.")
+
+    elif action.lower() == 'add':
+        if hour is None or minute is None:
+            await ctx.respond("Please provide both an hour and a minute to add a new time.", ephemeral=True)
+            return
+
+        new_time = time(hour, minute)
+        if new_time in target_times:
+            await ctx.respond(f"Time {new_time.strftime('%H:%M')} is already in the list.", ephemeral=True)
+        else:
+            target_times.append(new_time)
+            target_times.sort()  # Keep the times sorted
+            await ctx.respond(f"Added new time: {new_time.strftime('%H:%M')}")
+
+    elif action.lower() == 'remove':
+        if hour is None or minute is None:
+            await ctx.respond("Please provide both an hour and a minute to remove a time.", ephemeral=True)
+            return
+
+        remove_time = time(hour, minute)
+        if remove_time in target_times:
+            target_times.remove(remove_time)
+            await ctx.respond(f"Removed time: {remove_time.strftime('%H:%M')}")
+        else:
+            await ctx.respond(f"Time {remove_time.strftime('%H:%M')} not found in the list.", ephemeral=True)
+
+    else:
+        await ctx.respond("Invalid action. Please use 'add', 'remove', or 'show'.", ephemeral=True) 
 
 # JOIN Voice Channel Command
 @bot.slash_command(name="join")
