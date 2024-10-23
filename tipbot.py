@@ -130,7 +130,13 @@ async def wolf(ctx: discord.ApplicationContext, member: discord.Member, times: i
         await ctx.send(f"{member.mention}")
         await asyncio.sleep(0.5)
 
+@bot.slash_command(name="GN")
+async def GN(ctx: discord.ApplicationContext):
+    await ctx.respond("https://tenor.com/view/goodnight-goodnight-cro-crow-team-crow-animal-gif-12348871433112850239")
 
+@bot.slash_command(name="FROG")
+async def FROG(ctx: discord.ApplicationContext):
+    await ctx.respond("https://cdn.discordapp.com/attachments/1128773296150810674/1298684627870814258/togif.gif?ex=671a75cf&is=6719244f&hm=75e5de86dc5320c23c9e716e25c91af4aac3db9cd7ea0bc8540d441be4bcb1a8&")
 
 
 async def bigben():
