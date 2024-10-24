@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  tip-bot:
+    image: python:3.13
+    container_name: tip-bot
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: bash -c "pip install -r requirements.txt && python bot.py"
+    ports:
+      - "1111:5000"
+    restart: always
