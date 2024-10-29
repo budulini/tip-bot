@@ -10,6 +10,8 @@ import yt_dlp
 import logging
 import sys
 from datetime import datetime, time
+import requests
+import random
 
 load_dotenv()
 
@@ -163,7 +165,7 @@ async def bigben():
 
     try:
         voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: print(f"Error: {e}") if e else None)
-        print("Big Ben ringing!")
+    
         #time.sleep(10)
         await asyncio.sleep(180)
         voice_client.move_to(None)
@@ -337,6 +339,40 @@ def search_youtube(query):
         except Exception as e:
             print(f"Error searching YouTube: {e}")
             return None
+
+
+async def get_gif(tag):
+    """Fetch a random GIF URL from Tenor based on a given tag."""
+    url = "https://tenor.googleapis.com/v2/search"
+    params = {
+        "q": tag,
+        "key": os.getenv('TENOR_API_KEY'),
+        "limit": 20,
+        "media_filter": "gif"
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        data = response.json()
+
+        if not data.get('results'):
+            return "No GIFs found for this tag."
+
+        gif_url = random.choice(data['results'])['media_formats']['gif']['url']
+        return gif_url
+
+    except Exception as e:
+        print(f"Error fetching GIF: {e}")
+        return "Error fetching GIF."
+
+
+@bot.slash_command(name="fooly_cooly")
+async def fooly_cooly(ctx: discord.ApplicationContext):
+    tag = "fooly cooly"
+    gif_url = await get_gif(tag)
+    await ctx.respond(gif_url)
+
 
 
 # Event when the bot is ready
