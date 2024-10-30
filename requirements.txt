@@ -25,4 +25,3 @@ websockets==13.1
 yarl==1.15.2
 yt-dlp==2024.10.16.232911.dev0
 Flask==3.0.0
-requests

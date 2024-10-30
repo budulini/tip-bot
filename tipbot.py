@@ -103,8 +103,8 @@ async def leaderboard(ctx: discord.ApplicationContext):
 # KICK FROM VOICE CHANNEL
 @bot.slash_command(name="sigma")
 async def kick_voice(ctx: discord.ApplicationContext, member: discord.Member):
-    allowed_user_id = 587316682364813323  # Replace with actual allowed user ID
-    if ctx.user.id != allowed_user_id:
+    allowed_user_id = [587316682364813323, 707629556378370139]   # Repl]ace with actual allowed user ID
+    if ctx.user.id not in allowed_user_id:
         await ctx.respond("You do not have permission to use this command.", ephemeral=True)
         return
 
@@ -207,6 +207,7 @@ async def slovnik(ctx):
     with open(slovnik2path, 'r', encoding='utf-8') as file:
         text2 = file.read()
         await ctx.send(text2)
+    await ctx.respond("<@everyone>")
 
 @bot.slash_command(name="uptime")
 async def uptime(ctx: discord.ApplicationContext):
@@ -373,6 +374,19 @@ async def fooly_cooly(ctx: discord.ApplicationContext):
     gif_url = await get_gif(tag)
     await ctx.respond(gif_url)
 
+@bot.slash_command(name="clear")
+async def clear(ctx: discord.ApplicationContext, amount: int):
+    allowed_user_id = [587316682364813323]   # Repl]ace with actual allowed user ID
+    if ctx.user.id not in allowed_user_id:
+        await ctx.respond("You do not have permission to use this command.", ephemeral=True)
+        return
+    
+    if amount < 1:
+        await ctx.respond("Please specify a positive number of messages to delete.", ephemeral=True)
+        return
+
+    deleted = await ctx.channel.purge(limit=amount)
+    await ctx.respond(f"Deleted {len(deleted)} messages.", ephemeral=True)
 
 
 # Event when the bot is ready
