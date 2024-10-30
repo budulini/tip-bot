@@ -380,13 +380,23 @@ async def clear(ctx: discord.ApplicationContext, amount: int):
     if ctx.user.id not in allowed_user_id:
         await ctx.respond("You do not have permission to use this command.", ephemeral=True)
         return
-    
+
     if amount < 1:
         await ctx.respond("Please specify a positive number of messages to delete.", ephemeral=True)
         return
 
     deleted = await ctx.channel.purge(limit=amount)
     await ctx.respond(f"Deleted {len(deleted)} messages.", ephemeral=True)
+
+@bot.slash_command(name="is_this_real")
+async def is_this_real(ctx: discord.ApplicationContext):
+    chance = random.randint(1, 100)
+    if chance <= 50:
+        await ctx.respond("REAL")
+        await ctx.send(":white_check_mark: :white_check_mark: :white_check_mark: :white_check_mark: :white_check_mark: :white_check_mark: ")
+    else:
+        await ctx.respond("FAKE")
+        await ctx.send(":x: :x: :x: :x: :x: :x: :x: :x: :x: ")
 
 
 # Event when the bot is ready
