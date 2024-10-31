@@ -388,7 +388,7 @@ async def fooly_cooly(ctx: discord.ApplicationContext):
 
 @bot.slash_command(name="clear")
 async def clear(ctx: discord.ApplicationContext, amount: int):
-    allowed_user_id = [587316682364813323]   # Repl]ace with actual allowed user ID
+    allowed_user_id = [587316682364813323, 457885645155729409]   # Repl]ace with actual allowed user ID
     if ctx.user.id not in allowed_user_id:
         await ctx.respond("You do not have permission to use this command.", ephemeral=True)
         return
