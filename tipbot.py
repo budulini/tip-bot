@@ -265,8 +265,11 @@ async def time_manager(ctx: discord.ApplicationContext, action: str, hour: int =
             await ctx.respond(f"Time {remove_time.strftime('%H:%M')} not found in the list.", ephemeral=True)
 
     else:
-        await ctx.respond("Invalid action. Please use 'add', 'remove', or 'show'.", ephemeral=True) 
+        await ctx.respond("Invalid action. Please use 'add', 'remove', or 'show'.", ephemeral=True)
 
+
+#   MUSIC
+# ///////////////////////////////////////////////////////////////////
 # JOIN Voice Channel Command
 @bot.slash_command(name="join")
 async def join(ctx: discord.ApplicationContext):
@@ -320,6 +323,14 @@ async def play(ctx: discord.ApplicationContext, query: str):
         logging.error(f"Error playing the song: {e}")
         await ctx.followup.send(f"Error playing the song: {e}")
 
+# now playing
+@bot.slash_command(name="np")
+async def np(ctx: discord.ApplicationContext):
+    voice_client = ctx.guild.voice_client
+    if voice_client and voice_client.is_playing():
+        await ctx.respond(f"Now playing: {voice_client.source.title}")
+    else:
+        await ctx.respond("Not playing anything.")
 
 # Helper function to search YouTube using yt_dlp
 def search_youtube(query):
@@ -341,6 +352,7 @@ def search_youtube(query):
             print(f"Error searching YouTube: {e}")
             return None
 
+# ///////////////////////////////////////////////////////////////////
 
 async def get_gif(tag):
     """Fetch a random GIF URL from Tenor based on a given tag."""
