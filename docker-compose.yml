@@ -1,14 +1,20 @@
 version: '3'
 
 services:
-  tip-bot:
-    image: python:3.13
-    container_name: tip-bot
-    working_dir: /app
-
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
-      - .:/app
-    command: bash -c "apt-get update && apt-get install -y ffmpeg libopus-dev && pip install -r requirements.txt && python tipbot.py && logserver.py"
-    ports:
-      - "1111:5000"
-    restart: always
+      - ./app:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - bot-network
+
+volumes:
+  bot-cache:
+
+networks:
+  bot-network:
+    driver: bridge
