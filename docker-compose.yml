@@ -7,7 +7,7 @@ services:
     working_dir: /app
 
     volumes:
-      - ./files:/app/files
+      - .:/app
     command: bash -c "apt-get update && apt-get install -y ffmpeg libopus-dev && pip install -r requirements.txt && python tipbot.py && logserver.py"
     ports:
       - "1111:5000"
