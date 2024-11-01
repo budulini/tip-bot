@@ -299,22 +299,21 @@ async def leave(ctx: discord.ApplicationContext):
 
 @bot.slash_command(name="play")
 async def play(ctx: discord.ApplicationContext, query: str):
-    await ctx.defer()  # Defer the response to avoid timeouts
+    await ctx.defer()  # Defer response to prevent timeout
 
-    voice_client = ctx.guild.voice_client
     guild_id = ctx.guild.id
+    voice_client = ctx.guild.voice_client
 
     # Create a queue for the guild if it doesn't exist
     if guild_id not in song_queue:
         song_queue[guild_id] = []
 
+    # If the bot is not connected to a voice channel, try to join the user's channel
     if not voice_client:
         if ctx.author.voice:
             channel = ctx.author.voice.channel
-            if ctx.voice_client is not None:
-                await ctx.voice_client.move_to(channel)
-            else:
-                await channel.connect()
+            await channel.connect()
+            voice_client = ctx.guild.voice_client  # Update the reference after connecting
         else:
             await ctx.respond("You need to be in a voice channel to use this command.")
             return
@@ -334,6 +333,7 @@ async def play(ctx: discord.ApplicationContext, query: str):
     else:
         # Play the song immediately if no other song is playing
         await start_playing(ctx, voice_client, url, query)
+
 
 async def start_playing(ctx, voice_client, url, query):
     guild_id = ctx.guild.id
