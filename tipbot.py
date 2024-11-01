@@ -297,9 +297,10 @@ async def leave(ctx: discord.ApplicationContext):
         await ctx.respond("I'm not in a voice channel.")
 
 
-# Play Music Command
 @bot.slash_command(name="play")
 async def play(ctx: discord.ApplicationContext, query: str):
+    await ctx.defer()  # Defer the response to avoid timeouts
+
     voice_client = ctx.guild.voice_client
     guild_id = ctx.guild.id
 
@@ -322,14 +323,14 @@ async def play(ctx: discord.ApplicationContext, query: str):
     url = search_youtube(query)
 
     if not url:
-        await ctx.followup.send(f"Could not find the song: {query}")
+        await ctx.respond(f"Could not find the song: {query}")
         return
 
     # Check if a song is currently playing
     if voice_client.is_playing() or voice_client.is_paused():
         # Add the song to the queue and notify the user
         song_queue[guild_id].append((url, query))
-        await ctx.followup.send(f"Added to queue: {query}")
+        await ctx.respond(f"Added to queue: {query}")
     else:
         # Play the song immediately if no other song is playing
         await start_playing(ctx, voice_client, url, query)
