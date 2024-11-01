@@ -355,6 +355,37 @@ def handle_after(ctx, error):
     else:
         ctx.bot.loop.create_task(voice_client.disconnect())
 
+# Skip Command
+@bot.slash_command(name="skip")
+async def skip(ctx: discord.ApplicationContext):
+    voice_client = ctx.guild.voice_client
+    guild_id = ctx.guild.id
+
+    if not voice_client or not voice_client.is_playing():
+        await ctx.respond("No song is currently playing to skip.", ephemeral=True)
+        return
+
+    # Stop the current song, triggering the next one to play
+    voice_client.stop()
+    await ctx.respond("Skipped the current song.", ephemeral=True)
+
+
+# Show Queue Command
+@bot.slash_command(name="queue")
+async def show_queue(ctx: discord.ApplicationContext):
+    guild_id = ctx.guild.id
+
+    if guild_id not in song_queue or not song_queue[guild_id]:
+        await ctx.respond("The queue is empty.", ephemeral=True)
+        return
+
+    queue_message = "Current Queue:\n"
+    for i, (_, query) in enumerate(song_queue[guild_id]):
+        queue_message += f"{i + 1}. {query}\n"
+
+    await ctx.respond(queue_message, ephemeral=True)
+
+
 # now playing
 @bot.slash_command(name="np")
 async def np(ctx: discord.ApplicationContext):
