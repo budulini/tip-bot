@@ -5,6 +5,7 @@ services:
     image: python:3.13
     container_name: tip-bot
     working_dir: /app
+
     volumes:
       - .:/app
     command: bash -c "apt-get update && apt-get install -y ffmpeg libopus-dev && pip install -r requirements.txt && python tipbot.py && logserver.py"

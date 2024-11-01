@@ -30,6 +30,9 @@ start_time = None
 
 target_times = [time(22, 0), time(10, 00)]  # 12:00 AM and 12:00 PM
 
+song_queue = {}  # Dictionary to hold queues for each guild
+current_song = {}  # Dictionary to hold the current song for each guild
+
 def ensure_opus():
     if not discord.opus.is_loaded():
         try:
@@ -294,41 +297,107 @@ async def leave(ctx: discord.ApplicationContext):
         await ctx.respond("I'm not in a voice channel.")
 
 
-# Play Music Command
 @bot.slash_command(name="play")
 async def play(ctx: discord.ApplicationContext, query: str):
-    # Defer the interaction to give the bot time to process the request
-    await ctx.defer()
+    await ctx.defer()  # Defer response to prevent timeout
 
+    guild_id = ctx.guild.id
     voice_client = ctx.guild.voice_client
 
+    # Create a queue for the guild if it doesn't exist
+    if guild_id not in song_queue:
+        song_queue[guild_id] = []
+
+    # If the bot is not connected to a voice channel, try to join the user's channel
     if not voice_client:
-        await join(ctx)  # Automatically join the voice channel if not connected
-        #voice_client = ctx.guild.voice_client  # Update the voice_client variable
+        if ctx.author.voice:
+            channel = ctx.author.voice.channel
+            await channel.connect()
+            voice_client = ctx.guild.voice_client  # Update the reference after connecting
+        else:
+            await ctx.respond("You need to be in a voice channel to use this command.")
+            return
 
     ensure_opus()
     url = search_youtube(query)
 
     if not url:
-        await ctx.followup.send(f"Could not find the song: {query}")
+        await ctx.respond(f"Could not find the song: {query}")
         return
 
-    if voice_client.is_playing():
-        voice_client.stop()
+    # Check if a song is currently playing
+    if voice_client.is_playing() or voice_client.is_paused():
+        # Add the song to the queue and notify the user
+        song_queue[guild_id].append((url, query))
+        await ctx.respond(f"Added to queue: {query}")
+    else:
+        # Play the song immediately if no other song is playing
+        await start_playing(ctx, voice_client, url, query)
 
+
+async def start_playing(ctx, voice_client, url, query):
+    guild_id = ctx.guild.id
+    current_song[guild_id] = query  # Store the current song title
     try:
-        voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: print(f"Error: {e}") if e else None)
+        voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: handle_after(ctx, e))
         await ctx.followup.send(f"Now playing: {query}")
     except Exception as e:
         logging.error(f"Error playing the song: {e}")
         await ctx.followup.send(f"Error playing the song: {e}")
 
-# now playing
+def handle_after(ctx, error):
+    guild_id = ctx.guild.id
+    voice_client = ctx.guild.voice_client
+
+    if error:
+        print(f"Error: {error}")
+
+    # Play the next song in the queue, if any
+    if song_queue[guild_id]:
+        next_url, next_query = song_queue[guild_id].pop(0)
+        current_song[guild_id] = next_query  # Update current song
+        ctx.bot.loop.create_task(start_playing(ctx, voice_client, next_url, next_query))
+    else:
+        current_song.pop(guild_id, None)  # Remove current song if no songs left
+        ctx.bot.loop.create_task(voice_client.disconnect())
+
+# Skip Command
+@bot.slash_command(name="skip")
+async def skip(ctx: discord.ApplicationContext):
+    voice_client = ctx.guild.voice_client
+    guild_id = ctx.guild.id
+
+    if not voice_client or not voice_client.is_playing():
+        await ctx.respond("No song is currently playing to skip.", ephemeral=True)
+        return
+
+    # Stop the current song, triggering the next one to play
+    voice_client.stop()
+    await ctx.respond("Skipped the current song.", ephemeral=True)
+
+
+# Show Queue Command
+@bot.slash_command(name="queue")
+async def show_queue(ctx: discord.ApplicationContext):
+    guild_id = ctx.guild.id
+
+    if guild_id not in song_queue or not song_queue[guild_id]:
+        await ctx.respond("The queue is empty.", ephemeral=True)
+        return
+
+    queue_message = "Current Queue:\n"
+    for i, (_, query) in enumerate(song_queue[guild_id]):
+        queue_message += f"{i + 1}. {query}\n"
+
+    await ctx.respond(queue_message, ephemeral=True)
+
+
+# Now Playing Command
 @bot.slash_command(name="np")
 async def np(ctx: discord.ApplicationContext):
-    voice_client = ctx.guild.voice_client
-    if voice_client and voice_client.is_playing():
-        await ctx.respond(f"Now playing: {voice_client.source.title}")
+    guild_id = ctx.guild.id
+    if guild_id in current_song and current_song[guild_id]:
+        await ctx.respond(f"Now playing: {current_song[guild_id]}")
     else:
         await ctx.respond("Not playing anything.")
 
@@ -428,7 +497,7 @@ async def on_ready():
     )
     ensure_opus()
     global start_time
-    start_time = datetime.utcnow()
+    start_time = datetime.now().astimezone().tzinfo
     # Example log entry to test
     logging.info("Bot started")
     print(f"{bot.user} is online!")
