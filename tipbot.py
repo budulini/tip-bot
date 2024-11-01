@@ -313,7 +313,6 @@ async def play(ctx: discord.ApplicationContext, query: str):
                 await ctx.voice_client.move_to(channel)
             else:
                 await channel.connect()
-            ensure_opus()
         else:
             await ctx.respond("You need to be in a voice channel to use this command.")
             return
@@ -461,7 +460,7 @@ async def on_ready():
     )
     ensure_opus()
     global start_time
-    start_time = datetime.utcnow()
+    start_time = datetime.now().astimezone().tzinfo
     # Example log entry to test
     logging.info("Bot started")
     print(f"{bot.user} is online!")

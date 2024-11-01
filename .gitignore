@@ -282,7 +282,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env_dabot
+.env
 .venv
 env/
 venv/
@@ -328,4 +328,4 @@ cython_debug/
 .env_tom
 /ffmpeg-7.1/
 
-.env
+.env_tipbot
