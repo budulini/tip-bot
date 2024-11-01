@@ -31,6 +31,7 @@ start_time = None
 target_times = [time(22, 0), time(10, 00)]  # 12:00 AM and 12:00 PM
 
 song_queue = {}  # Dictionary to hold queues for each guild
+current_song = {}  # Dictionary to hold the current song for each guild
 
 def ensure_opus():
     if not discord.opus.is_loaded():
@@ -334,6 +335,8 @@ async def play(ctx: discord.ApplicationContext, query: str):
         await start_playing(ctx, voice_client, url, query)
 
 async def start_playing(ctx, voice_client, url, query):
+    guild_id = ctx.guild.id
+    current_song[guild_id] = query  # Store the current song title
     try:
         voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: handle_after(ctx, e))
         await ctx.followup.send(f"Now playing: {query}")
@@ -351,8 +354,10 @@ def handle_after(ctx, error):
     # Play the next song in the queue, if any
     if song_queue[guild_id]:
         next_url, next_query = song_queue[guild_id].pop(0)
+        current_song[guild_id] = next_query  # Update current song
         ctx.bot.loop.create_task(start_playing(ctx, voice_client, next_url, next_query))
     else:
+        current_song.pop(guild_id, None)  # Remove current song if no songs left
         ctx.bot.loop.create_task(voice_client.disconnect())
 
 # Skip Command
@@ -386,12 +391,12 @@ async def show_queue(ctx: discord.ApplicationContext):
     await ctx.respond(queue_message, ephemeral=True)
 
 
-# now playing
+# Now Playing Command
 @bot.slash_command(name="np")
 async def np(ctx: discord.ApplicationContext):
-    voice_client = ctx.guild.voice_client
-    if voice_client and voice_client.is_playing():
-        await ctx.respond(f"Now playing: {voice_client.source.title}")
+    guild_id = ctx.guild.id
+    if guild_id in current_song and current_song[guild_id]:
+        await ctx.respond(f"Now playing: {current_song[guild_id]}")
     else:
         await ctx.respond("Not playing anything.")
 
