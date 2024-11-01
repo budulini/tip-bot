@@ -340,7 +340,7 @@ async def start_playing(ctx, voice_client, url, query):
     current_song[guild_id] = query  # Store the current song title
     try:
         voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: handle_after(ctx, e))
-        await ctx.followup.send(f"Now playing: {query}")
+        await ctx.followup.send(f"Now playing: {url}")
     except Exception as e:
         logging.error(f"Error playing the song: {e}")
         await ctx.followup.send(f"Error playing the song: {e}")
