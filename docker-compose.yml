@@ -8,7 +8,7 @@ services:
 
     volumes:
       - .:/app
-    command: bash -c "apt-get install -y ffmpeg libopus-dev && pip install -r requirements.txt && python tipbot.py && logserver.py"
+    command: bash -c "apt-get update && apt-get install -y ffmpeg libopus-dev && pip install -r requirements.txt && python tipbot.py && logserver.py"
     ports:
       - "1111:5000"
     restart: always
