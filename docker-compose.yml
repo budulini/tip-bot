@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./app:/app
+      - ./files:/app/files
     environment:
       - PYTHONUNBUFFERED=1
     networks:
