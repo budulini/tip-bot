@@ -5,7 +5,7 @@ FROM python:3.13
 WORKDIR /app
 
 # Copy the requirements file and install dependencies separately
-COPY requirements.txt .
+COPY . .
 
 # Install any dependencies (caches this layer unless requirements.txt changes)
 RUN apt-get update && apt-get install -y \
