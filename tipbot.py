@@ -1,4 +1,5 @@
 from pydoc import describe
+from time import sleep
 
 import discord
 from discord.ext import commands
@@ -28,7 +29,7 @@ FFMPEG_OPTIONS = {'options': '-vn'}
 YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
 start_time = None
 
-target_times = [time(22, 0), time(10, 00)]  # 12:00 AM and 12:00 PM
+target_times = [time(23, 0), time(11, 00)]  # 12:00 AM and 12:00 PM
 
 song_queue = {}  # Dictionary to hold queues for each guild
 current_song = {}  # Dictionary to hold the current song for each guild
@@ -143,7 +144,7 @@ async def gn(ctx: discord.ApplicationContext):
 async def frog(ctx: discord.ApplicationContext):
     await ctx.respond("https://cdn.discordapp.com/attachments/1128773296150810674/1298684627870814258/togif.gif?ex=671a75cf&is=6719244f&hm=75e5de86dc5320c23c9e716e25c91af4aac3db9cd7ea0bc8540d441be4bcb1a8&")
 
-
+"""
 async def bigben():
     voice_channel_id = 1128735809776910349 # Replace with your voice channel ID
     channel = bot.get_channel(voice_channel_id)
@@ -176,7 +177,67 @@ async def bigben():
         logging.error(f"Error playing Big Ben sound: {e}")
         print(f"Error playing Big Ben sound: {e}")
 
+"""
+audio_file_gong = "BONG.mp3"
+audio_file_foreplay = "bigben_foreplay.mp3"
+async def bigben_bong(times):
+    voice_channel_id = 1128735809776910349 # Replace with your voice channel ID
+    channel = bot.get_channel(voice_channel_id)
 
+    if channel is None:
+        print("Voice channel not found.")
+        return
+
+    if bot.voice_clients:
+        voice_client = bot.voice_clients[0]
+        if voice_client.channel != channel:
+            await voice_client.move_to(channel)
+    else:
+        await channel.connect()
+
+    if voice_client.is_playing():
+        voice_client.stop()
+
+    #begin tha GONG
+    if os.path.isfile(audio_file_foreplay):
+        source = discord.FFmpegPCMAudio(audio_file_foreplay)
+        voice_client.play(source, after=lambda e: print(f"Finished playing: {e}"))
+        while voice_client.is_playing():
+            await asyncio.sleep(1)
+
+    for i in range(times):
+        if os.path.isfile(audio_file_gong):
+            source = discord.FFmpegPCMAudio(audio_file_gong)
+            voice_client.play(source, after=lambda e: print(f"Finished playing: {e}"))
+            while voice_client.is_playing():
+                await asyncio.sleep(1)
+
+
+
+
+async def bigben_time():
+    while True:
+        now = datetime.now()
+        if now.hour == 11 and now.minute == 00:
+            bigben_bong(12)
+        elif now.hour == 23 and now.minute == 00:
+            bigben_bong(12)
+        elif now.hour == 0 and now.minute == 00:
+            bigben_bong(13)
+        elif now.hour == 1 and now.minute == 00:
+            bigben_bong(14)
+        elif now.hour == 2 and now.minute == 00:
+            bigben_bong(15)
+        elif now.hour == 3 and now.minute == 00:
+            bigben_bong(16)
+        elif now.hour == 4 and now.minute == 00:
+            bigben_bong(17)
+        elif now.hour == 20 and now.minute == 40:
+            bigben_bong(4)
+        else:
+            sleep(60)
+
+"""
 async def time_based_trigger():
     global target_times
 
@@ -197,7 +258,7 @@ async def time_based_trigger():
         sleep_for = (next_target - current_minutes) % (24 * 60)  # Handle time differences crossing midnight
         await asyncio.sleep(sleep_for * 60)  # Convert to seconds
 
-
+"""
 # Slovník
 slovnik1path = "files/slovnik1.txt"
 slovnik2path = "files/slovnik2.txt"
@@ -219,6 +280,7 @@ async def uptime(ctx: discord.ApplicationContext):
     hours, remainder = divmod(int(uptime_duration.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
     await ctx.respond(f"Bot has been online for {hours} hours, {minutes} minutes, and {seconds} seconds.")
+    await ctx.send(f"now is {datetime.now}")
 
 
 # Function to add, remove, or show target times
@@ -501,7 +563,7 @@ async def on_ready():
     # Example log entry to test
     logging.info("Bot started")
     print(f"{bot.user} is online!")
-    await time_based_trigger()
+    await bigben_time()
 
 # Running the bot with your token
 def runBot():
