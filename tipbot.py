@@ -213,6 +213,9 @@ async def bigben_bong(times):
                 await asyncio.sleep(1)
 
 
+    voice_client.move_to(None)
+
+
 
 
 async def bigben_time():
@@ -232,7 +235,7 @@ async def bigben_time():
             bigben_bong(16)
         elif now.hour == 4 and now.minute == 00:
             bigben_bong(17)
-        elif now.hour == 20 and now.minute == 40:
+        elif now.hour == 17 and now.minute == 15: #test time
             bigben_bong(4)
         else:
             sleep(60)
