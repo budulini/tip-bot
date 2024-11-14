@@ -9,6 +9,8 @@ services:
       - ./files:/app/files
     environment:
       - PYTHONUNBUFFERED=1
+    ports:
+      - 1701:5000
     networks:
       - bot-network
 
