@@ -27,7 +27,6 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 SCORES_FILE = "files/scores.json"
 FFMPEG_OPTIONS = {'options': '-vn'}
 YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
-start_time = None
 
 target_times = [time(23, 0), time(11, 00)]  # 12:00 AM and 12:00 PM
 
@@ -363,7 +362,7 @@ async def leave(ctx: discord.ApplicationContext):
 
 
 @bot.slash_command(name="play")
-async def play(ctx: discord.ApplicationContext, query: str):
+async def play(ctx: discord.ApplicationContext, query: str, webpage_url):
     await ctx.defer()  # Defer response to prevent timeout
 
     guild_id = ctx.guild.id
@@ -394,18 +393,18 @@ async def play(ctx: discord.ApplicationContext, query: str):
     if voice_client.is_playing() or voice_client.is_paused():
         # Add the song to the queue and notify the user
         song_queue[guild_id].append((url, query))
-        await ctx.respond(f"Added to queue: {query}")
+        await ctx.respond(f"Added to queue: {webpage_url}")
     else:
         # Play the song immediately if no other song is playing
         await start_playing(ctx, voice_client, url, query)
 
 
-async def start_playing(ctx, voice_client, url, query):
+async def start_playing(ctx, voice_client, url, query, webpage_url):
     guild_id = ctx.guild.id
     current_song[guild_id] = query  # Store the current song title
     try:
         voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: handle_after(ctx, e))
-        await ctx.followup.send(f"Now playing: {url}")
+        await ctx.followup.send(f"Now playing: {webpage_url}")
     except Exception as e:
         logging.error(f"Error playing the song: {e}")
         await ctx.followup.send(f"Error playing the song: {e}")
@@ -478,7 +477,7 @@ def search_youtube(query):
         try:
             info = ydl.extract_info(query, download=False)
             if 'entries' in info and len(info['entries']) > 0:
-                return info['entries'][0]['url']
+                return info['entries'][0]['url'], info['entries'][0]['webpage_url']
             else:
                 print(f"No results found for query: {query}")
                 return None
@@ -489,7 +488,6 @@ def search_youtube(query):
 # ///////////////////////////////////////////////////////////////////
 
 async def get_gif(tag):
-    """Fetch a random GIF URL from Tenor based on a given tag."""
     url = "https://tenor.googleapis.com/v2/search"
     params = {
         "q": tag,
