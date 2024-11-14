@@ -566,7 +566,7 @@ async def on_ready():
     # Example log entry to test
     logging.info("Bot started")
     print(f"{bot.user} is online!")
-    await bigben_time()
+    # await bigben_time()
 
 # Running the bot with your token
 def runBot():
