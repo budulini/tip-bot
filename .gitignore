@@ -329,3 +329,4 @@ cython_debug/
 /ffmpeg-7.1/
 
 .env_tipbot
+.score.json
