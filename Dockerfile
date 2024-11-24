@@ -16,5 +16,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Run the application
-CMD ["python", "tipbot.py"]
-CMD ["python", "webhook-handler.py"]
+CMD ["python", "tipbot.py", "&"]
+CMD ["python", "webhook-handler.py", "&"]
