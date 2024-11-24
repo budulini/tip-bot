@@ -9,12 +9,13 @@ services:
       - ./files:/app/files
     environment:
       - PYTHONUNBUFFERED=1
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - TENOR_API_KEY=${TENOR_API_KEY}
     ports:
       - 1701:5000
       - 28973:28973
     networks:
       - bot-network
-
 volumes:
   bot-cache:
 
