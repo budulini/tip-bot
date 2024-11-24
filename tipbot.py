@@ -554,7 +554,7 @@ async def on_ready():
         level=logging.DEBUG,  # Set the logging level (INFO, DEBUG, etc.)
         format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
         handlers=[
-            logging.FileHandler('bot.log'),  # Log to the file
+            logging.FileHandler('files/bot.log'),  # Log to the file
             logging.StreamHandler(sys.stdout)  # Log to the console
         ]
     )
