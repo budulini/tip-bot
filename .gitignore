@@ -330,3 +330,5 @@ cython_debug/
 
 .env_tipbot
 .score.json
+
+./files
