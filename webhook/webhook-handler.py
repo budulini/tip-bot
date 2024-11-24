@@ -9,7 +9,7 @@ def webhook():
         try:
             # Run the host script
             result = subprocess.run(
-                ["/path/to/your/host-script.sh"],
+                ["/home/janko/tip-bot/webhook/webhook-handler.sh"],
                 capture_output=True,
                 text=True,
                 check=True
