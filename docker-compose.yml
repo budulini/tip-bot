@@ -13,14 +13,6 @@ services:
       - TENOR_API_KEY=${TENOR_API_KEY}
     networks:
       - bot-network
-  webhook:
-    build:
-      context: ./webhook
-      dockerfile: Webhook-dockerfile
-    ports:
-      - 28973:28973
-    networks:
-      - bot-network
   logserver:
     build:
       context: .
