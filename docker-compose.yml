@@ -11,6 +11,7 @@ services:
       - PYTHONUNBUFFERED=1
     ports:
       - 1701:5000
+      - 28973:28973
     networks:
       - bot-network
 
