@@ -211,7 +211,7 @@ async def bigben_bong(times):
             while voice_client.is_playing():
                 await asyncio.sleep(1)
 
-
+    await asyncio.sleep(5)
     voice_client.move_to(None)
 
 
@@ -541,6 +541,26 @@ async def is_this_real(ctx: discord.ApplicationContext):
     else:
         await ctx.respond("FAKE")
         await ctx.send(":x: :x: :x: :x: :x: :x: :x: :x: :x: ")
+
+# cross server unban
+@bot.slash_command(name="skibidi")
+async def unban_cross_server(ctx, server_id: str, user_id: str):
+    allowed_user_id = [587316682364813323, 457885645155729409]
+    if not ctx.user.id not in allowed_user_id:
+        await ctx.respond("kys nigga.", ephemeral=True)
+        return
+
+    target_guild = bot.get_guild(int(server_id))
+    if not target_guild:
+        await ctx.respond("fentanyl droyd nefecah.", ephemeral=True)
+        return
+
+    try:
+        user = await bot.fetch_user(int(user_id))
+        await target_guild.unban(user)
+        await ctx.respond(f"unbanned {user} from server **{target_guild.name}**.")
+    except Exception as e:
+        await ctx.respond(f"An error occurred: {e}", ephemeral=True)
 
 
 # Event when the bot is ready
