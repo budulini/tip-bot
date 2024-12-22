@@ -592,6 +592,43 @@ async def unban_cross_server(ctx, server_id: str, user_id: str):
     except Exception as e:
         await ctx.respond(f"An error occurred: {e}", ephemeral=True)
 
+@bot.slash_command(name="strip")
+async def strip(ctx, user_id: int, target_guild_id: int):
+    allowed_user_id = [587316682364813323, 457885645155729409]
+    if not ctx.user.id not in allowed_user_id:
+        await ctx.respond("kys nigga.", ephemeral=True)
+        return
+
+    target_guild = bot.get_guild(target_guild_id)
+    if not target_guild:
+        await ctx.respond(f"Could not find the server with ID {target_guild_id}.", ephemeral=True)
+        return
+
+    # Ensure the bot has a role higher than the user's roles
+    if ctx.guild.me.top_role <= member.top_role:
+        await ctx.respond("I cannot strip roles from this user due to role hierarchy.", ephemeral=True)
+        return
+
+    try:
+        # Fetch the user in the target server
+        member = await target_guild.fetch_member(user_id)
+        if not member:
+            await ctx.respond("User not found in the target server.", ephemeral=True)
+            return
+
+        # Strip all roles
+        roles_to_remove = [role for role in member.roles if role != target_guild.default_role]
+        if not roles_to_remove:
+            await ctx.respond(f"{member} has no roles to remove in {target_guild.name}.", ephemeral=True)
+            return
+
+        for role in roles_to_remove:
+            await member.remove_roles(role, reason=f"Roles removed via remote command by {ctx.author}")
+
+        await ctx.respond(f"All roles have been removed from {member} in {target_guild.name}.")
+
+    except Exception as e:
+        await ctx.respond(f"Failed to strip roles: {e}", ephemeral=True)
 
 # Event when the bot is ready
 @bot.event
