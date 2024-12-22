@@ -605,15 +605,16 @@ async def strip(ctx, user_id: int, target_guild_id: int):
         return
 
     # Ensure the bot has a role higher than the user's roles
-    if ctx.guild.me.top_role <= member.top_role:
-        await ctx.respond("I cannot strip roles from this user due to role hierarchy.", ephemeral=True)
-        return
 
     try:
         # Fetch the user in the target server
         member = await target_guild.fetch_member(user_id)
         if not member:
             await ctx.respond("User not found in the target server.", ephemeral=True)
+            return
+
+        if ctx.guild.me.top_role <= member.top_role:
+            await ctx.respond("I cannot strip roles from this user due to role hierarchy.", ephemeral=True)
             return
 
         # Strip all roles
