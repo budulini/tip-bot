@@ -282,7 +282,7 @@ async def uptime(ctx: discord.ApplicationContext):
     hours, remainder = divmod(int(uptime_duration.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
     await ctx.respond(f"Bot has been online for {hours} hours, {minutes} minutes, and {seconds} seconds.")
-    await ctx.send(f"now is {datetime.now}")
+    await ctx.send(f"now is {datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')}")
 
 
 # Function to add, remove, or show target times
