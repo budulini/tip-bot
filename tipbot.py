@@ -362,7 +362,7 @@ async def leave(ctx: discord.ApplicationContext):
 
 
 @bot.slash_command(name="play")
-async def play(ctx: discord.ApplicationContext, query: str, webpage_url):
+async def play(ctx: discord.ApplicationContext, query: str):
     await ctx.defer()  # Defer response to prevent timeout
 
     guild_id = ctx.guild.id
@@ -383,7 +383,7 @@ async def play(ctx: discord.ApplicationContext, query: str, webpage_url):
             return
 
     ensure_opus()
-    url = search_youtube(query)
+    url, webpage_url, title = await search_youtube(query)
 
     if not url:
         await ctx.respond(f"Could not find the song: {query}")
@@ -392,23 +392,49 @@ async def play(ctx: discord.ApplicationContext, query: str, webpage_url):
     # Check if a song is currently playing
     if voice_client.is_playing() or voice_client.is_paused():
         # Add the song to the queue and notify the user
-        song_queue[guild_id].append((url, query))
-        await ctx.respond(f"Added to queue: {webpage_url}")
+        song_queue[guild_id].append((url, title))
+        await ctx.respond(f"Added to queue: {title}")
     else:
         # Play the song immediately if no other song is playing
-        await start_playing(ctx, voice_client, url, query)
+        await start_playing(ctx, voice_client, url, title)
 
 
-async def start_playing(ctx, voice_client, url, query, webpage_url):
-    guild_id = ctx.guild.id
-    current_song[guild_id] = query  # Store the current song title
+
+async def start_playing(ctx, voice_client, url, title):
+    guild_id = voice_client.guild.id
+    current_song[guild_id] = title  # Store the current song title
     try:
-        voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: handle_after(ctx, e))
-        await ctx.followup.send(f"Now playing: {webpage_url}")
+        source = discord.FFmpegPCMAudio(url)
+        voice_client.play(source, after=lambda e: after_playing(e, guild_id, voice_client))
+        if ctx:
+            await ctx.followup.send(f"Now playing: {title}")
     except Exception as e:
         logging.error(f"Error playing the song: {e}")
-        await ctx.followup.send(f"Error playing the song: {e}")
+        if ctx:
+            await ctx.followup.send(f"Error playing the song: {e}")
 
+def after_playing(error, guild_id, voice_client):
+    if error:
+        print(f"Error: {error}")
+
+    coro = play_next_song(guild_id, voice_client)
+    fut = asyncio.run_coroutine_threadsafe(coro, bot.loop)
+    try:
+        fut.result()
+    except Exception as e:
+        print(f"Error in after_playing: {e}")
+
+async def play_next_song(guild_id, voice_client):
+    if song_queue[guild_id]:
+        next_url, next_title = song_queue[guild_id].pop(0)
+        current_song[guild_id] = next_title  # Update current song
+        await start_playing(None, voice_client, next_url, next_title)
+    else:
+        current_song.pop(guild_id, None)  # Remove current song if no songs left
+        await voice_client.disconnect()
+
+
+'''
 def handle_after(ctx, error):
     guild_id = ctx.guild.id
     voice_client = ctx.guild.voice_client
@@ -424,6 +450,7 @@ def handle_after(ctx, error):
     else:
         current_song.pop(guild_id, None)  # Remove current song if no songs left
         ctx.bot.loop.create_task(voice_client.disconnect())
+'''
 
 # Skip Command
 @bot.slash_command(name="skip")
@@ -466,24 +493,27 @@ async def np(ctx: discord.ApplicationContext):
         await ctx.respond("Not playing anything.")
 
 # Helper function to search YouTube using yt_dlp
-def search_youtube(query):
+async def search_youtube(query):
     ydl_opts = {
-        'format': 'bestaudio',
+        'format': 'bestaudio/best',
         'noplaylist': True,
         'quiet': True,
-        'default_search': 'ytsearch'
+        'default_search': 'auto',  # Automatically detect if input is URL or search term
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             info = ydl.extract_info(query, download=False)
             if 'entries' in info and len(info['entries']) > 0:
-                return info['entries'][0]['url'], info['entries'][0]['webpage_url']
+                # It's a search result
+                video = info['entries'][0]
             else:
-                print(f"No results found for query: {query}")
-                return None
+                # It's a direct URL
+                video = info
+            return video['url'], video['webpage_url'], video['title']
         except Exception as e:
             print(f"Error searching YouTube: {e}")
-            return None
+            return None, None, None
+
 
 # ///////////////////////////////////////////////////////////////////
 
