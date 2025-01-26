@@ -33,6 +33,7 @@ target_times = [time(23, 0), time(11, 00)]  # 12:00 AM and 12:00 PM
 song_queue = {}  # Dictionary to hold queues for each guild
 current_song = {}  # Dictionary to hold the current song for each guild
 
+
 def ensure_opus():
     if not discord.opus.is_loaded():
         try:
@@ -46,6 +47,7 @@ def ensure_opus():
             except Exception as e:
                 logging.error(f"Failed to load Opus: {e}")
                 print(f"Failed to load Opus: {e}")
+
 
 # Load scores from a file
 def load_scores():
@@ -106,7 +108,7 @@ async def leaderboard(ctx: discord.ApplicationContext):
 # KICK FROM VOICE CHANNEL
 @bot.slash_command(name="sigma")
 async def kick_voice(ctx: discord.ApplicationContext, member: discord.Member):
-    allowed_user_id = [587316682364813323, 707629556378370139]   # Repl]ace with actual allowed user ID
+    allowed_user_id = [587316682364813323, 707629556378370139]  # Repl]ace with actual allowed user ID
     if ctx.user.id not in allowed_user_id:
         await ctx.respond("You do not have permission to use this command.", ephemeral=True)
         return
@@ -135,13 +137,16 @@ async def wolf(ctx: discord.ApplicationContext, member: discord.Member, times: i
         await ctx.send(f"{member.mention}")
         await asyncio.sleep(0.5)
 
+
 @bot.slash_command(name="gn")
 async def gn(ctx: discord.ApplicationContext):
     await ctx.respond("https://tenor.com/view/goodnight-goodnight-cro-crow-team-crow-animal-gif-12348871433112850239")
 
+
 @bot.slash_command(name="frog")
 async def frog(ctx: discord.ApplicationContext):
     await ctx.respond("https://cdn.discordapp.com/attachments/1128773296150810674/1298684627870814258/togif.gif?ex=671a75cf&is=6719244f&hm=75e5de86dc5320c23c9e716e25c91af4aac3db9cd7ea0bc8540d441be4bcb1a8&")
+
 
 """
 async def bigben():
@@ -168,7 +173,7 @@ async def bigben():
 
     try:
         voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: print(f"Error: {e}") if e else None)
-    
+
         #time.sleep(10)
         await asyncio.sleep(180)
         voice_client.move_to(None)
@@ -179,8 +184,10 @@ async def bigben():
 """
 audio_file_gong = "BONG.mp3"
 audio_file_foreplay = "bigben_foreplay.mp3"
+
+
 async def bigben_bong(times):
-    voice_channel_id = 1128735809776910349 # Replace with your voice channel ID
+    voice_channel_id = 1128735809776910349  # Replace with your voice channel ID
     channel = bot.get_channel(voice_channel_id)
 
     if channel is None:
@@ -197,7 +204,7 @@ async def bigben_bong(times):
     if voice_client.is_playing():
         voice_client.stop()
 
-    #begin tha GONG
+    # begin tha GONG
     if os.path.isfile(audio_file_foreplay):
         source = discord.FFmpegPCMAudio(audio_file_foreplay)
         voice_client.play(source, after=lambda e: print(f"Finished playing: {e}"))
@@ -214,9 +221,7 @@ async def bigben_bong(times):
     await asyncio.sleep(5)
     voice_client.move_to(None)
 
-
-
-
+"""
 async def bigben_time():
     while True:
         now = datetime.now()
@@ -234,12 +239,13 @@ async def bigben_time():
             bigben_bong(16)
         elif now.hour == 4 and now.minute == 00:
             bigben_bong(17)
-        elif now.hour == 17 and now.minute == 15: #test time
+        elif now.hour == 17 and now.minute == 15:  # test time
             bigben_bong(4)
         else:
             sleep(60)
 
-"""
+
+
 async def time_based_trigger():
     global target_times
 
@@ -265,6 +271,7 @@ async def time_based_trigger():
 slovnik1path = "files/slovnik1.txt"
 slovnik2path = "files/slovnik2.txt"
 
+
 @bot.slash_command(name="slovnik")
 async def slovnik(ctx):
     with open(slovnik1path, 'r', encoding='utf-8') as file:
@@ -274,6 +281,7 @@ async def slovnik(ctx):
         text2 = file.read()
         await ctx.send(text2)
     await ctx.respond("<@everyone>")
+
 
 @bot.slash_command(name="uptime")
 async def uptime(ctx: discord.ApplicationContext):
@@ -399,7 +407,6 @@ async def play(ctx: discord.ApplicationContext, query: str):
         await start_playing(ctx, voice_client, url, title)
 
 
-
 async def start_playing(ctx, voice_client, url, title):
     guild_id = voice_client.guild.id
     current_song[guild_id] = title  # Store the current song title
@@ -413,6 +420,7 @@ async def start_playing(ctx, voice_client, url, title):
         if ctx:
             await ctx.followup.send(f"Error playing the song: {e}")
 
+
 def after_playing(error, guild_id, voice_client):
     if error:
         print(f"Error: {error}")
@@ -423,6 +431,7 @@ def after_playing(error, guild_id, voice_client):
         fut.result()
     except Exception as e:
         print(f"Error in after_playing: {e}")
+
 
 async def play_next_song(guild_id, voice_client):
     if song_queue[guild_id]:
@@ -451,6 +460,7 @@ def handle_after(ctx, error):
         current_song.pop(guild_id, None)  # Remove current song if no songs left
         ctx.bot.loop.create_task(voice_client.disconnect())
 '''
+
 
 # Skip Command
 @bot.slash_command(name="skip")
@@ -491,6 +501,7 @@ async def np(ctx: discord.ApplicationContext):
         await ctx.respond(f"Now playing: {current_song[guild_id]}")
     else:
         await ctx.respond("Not playing anything.")
+
 
 # Helper function to search YouTube using yt_dlp
 async def search_youtube(query):
@@ -548,9 +559,10 @@ async def fooly_cooly(ctx: discord.ApplicationContext):
     gif_url = await get_gif(tag)
     await ctx.respond(gif_url)
 
+
 @bot.slash_command(name="clear")
 async def clear(ctx: discord.ApplicationContext, amount: int):
-    allowed_user_id = [587316682364813323, 457885645155729409]   # Repl]ace with actual allowed user ID
+    allowed_user_id = [587316682364813323, 457885645155729409]  # Repl]ace with actual allowed user ID
     if ctx.user.id not in allowed_user_id:
         await ctx.respond("You do not have permission to use this command.", ephemeral=True)
         return
@@ -562,15 +574,17 @@ async def clear(ctx: discord.ApplicationContext, amount: int):
     deleted = await ctx.channel.purge(limit=amount)
     await ctx.respond(f"Deleted {len(deleted)} messages.", ephemeral=True)
 
+
 @bot.slash_command(name="is_this_real")
 async def is_this_real(ctx: discord.ApplicationContext):
     chance = random.randint(1, 100)
     if chance <= 50:
         await ctx.respond("REAL")
-        await ctx.send(":white_check_mark: :white_check_mark: :white_check_mark: :white_check_mark: :white_check_mark: :white_check_mark: ")
+        await ctx.send(":white_check_mark: :white_check_mark: :white_check_mark:")
     else:
         await ctx.respond("FAKE")
-        await ctx.send(":x: :x: :x: :x: :x: :x: :x: :x: :x: ")
+        await ctx.send(":x: :x: :x:")
+
 
 # cross server unban
 @bot.slash_command(name="skibidi")
@@ -591,6 +605,7 @@ async def unban_cross_server(ctx, server_id: str, user_id: str):
         await ctx.respond(f"unbanned {user} from server **{target_guild.name}**.")
     except Exception as e:
         await ctx.respond(f"An error occurred: {e}", ephemeral=True)
+
 
 @bot.slash_command(name="strip")
 async def strip(ctx, user_id: int, target_guild_id: int):
@@ -631,6 +646,7 @@ async def strip(ctx, user_id: int, target_guild_id: int):
     except Exception as e:
         await ctx.respond(f"Failed to strip roles: {e}", ephemeral=True)
 
+
 # Event when the bot is ready
 @bot.event
 async def on_ready():
@@ -653,6 +669,7 @@ async def on_ready():
     logging.info("Bot started")
     print(f"{bot.user} is online!")
     # await bigben_time()
+
 
 # Running the bot with your token
 def runBot():
