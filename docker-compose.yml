@@ -13,6 +13,7 @@ services:
       - TENOR_API_KEY=${TENOR_API_KEY}
     networks:
       - bot-network
+    restart: always
   logserver:
     build:
       context: .
@@ -21,6 +22,7 @@ services:
       - 1701:1701
     volumes:
       - ./files:/app/files
+    restart: always
 volumes:
   bot-cache:
 
