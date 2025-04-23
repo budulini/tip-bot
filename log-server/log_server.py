@@ -1,15 +1,19 @@
+import re
 from flask import Flask, Response
 
 app = Flask(__name__)
 
 # Function to stream the logs
 def generate_logs():
+    # only show INFO, WARNING, ERROR, CRITICAL
+    level_re = re.compile(r' - (INFO|WARNING|ERROR|CRITICAL) - ')
     with open('./files/bot.log', 'r') as f:  # Adjust the path to your log file
         while True:
             line = f.readline()
             if not line:
                 break
-            yield line
+            if level_re.search(line):
+                yield line
 
 @app.route('/logs')
 def logs():
