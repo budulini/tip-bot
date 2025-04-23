@@ -330,5 +330,6 @@ cython_debug/
 
 .env_tipbot
 .score.json
-
+./idea/misc.xml
+.idea/tip-bot.iml
 ./files
