@@ -10,9 +10,12 @@ from dotenv import load_dotenv
 import yt_dlp
 import logging
 import sys
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import requests
 import random
+import Steam_chart
+import matplotlib.pyplot as plt
+import csv
 
 load_dotenv()
 
@@ -285,7 +288,8 @@ async def slovnik(ctx):
 
 @bot.slash_command(name="uptime")
 async def uptime(ctx: discord.ApplicationContext):
-    current_time = datetime.utcnow()  # Get the current time
+    await ctx.defer
+    current_time = datetime.now().astimezone()  # Get the current time
     uptime_duration = current_time - start_time  # Calculate the difference
     hours, remainder = divmod(int(uptime_duration.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
@@ -662,7 +666,62 @@ async def unban():
         except Exception as e:
             print(f"An error occurred: {e}")
 
+LOG_FILE = os.getenv("STEAM_LOG_FILE", "steam_activity.csv")
+TARGET_GAME = os.getenv("TARGET_GAME", "Marvel Rivals")
 
+
+@bot.slash_command(description="wolf je negr")
+async def ticovi(ctx: discord.ApplicationContext):
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+
+    await ctx.defer()
+    cutoff = datetime.utcnow() - timedelta(days=30)
+    sessions = {}
+
+    # Return if no log file
+    if not os.path.isfile(LOG_FILE):
+        return await ctx.respond(f"No data found for **{TARGET_GAME}**.")
+
+    # Read and aggregate durations per date
+    with open(LOG_FILE, "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            date = datetime.fromisoformat(row["date"]).date()
+            dur = int(row["duration_seconds"])
+            if date not in sessions:
+                sessions[date] = 0
+            sessions[date] += dur
+
+    # Ensure all days in the last 30 days are included
+    all_dates = [cutoff.date() + timedelta(days=i) for i in range(30)]
+    dates = []
+    durations = []
+    for date in all_dates:
+        duration = sessions.get(date, 0) / 3600  # Default to 0 hours
+        dates.append(date)
+        durations.append(duration)
+        logging.debug(f"Processed date: {date}, Duration (hours): {duration}")
+
+    if not any(durations):
+        return await ctx.respond(f"No play records for **{TARGET_GAME}** in the last 30 days.")
+
+    # Plot bar chart: hours per day
+    plt.figure(figsize=(15, 6))  # Increase figure size for better spacing
+    plt.bar(range(len(dates)), durations, align='center')  # Use range for proper alignment
+    plt.xlabel("Date")
+    plt.ylabel("Hours played")
+    plt.title(f"{TARGET_GAME} daily playtime (last 30 days)")
+
+    # Set the x-ticks to show all dates
+    plt.xticks(ticks=range(len(dates)), labels=[date.strftime("%Y-%m-%d") for date in dates], rotation=45, ha='right')
+
+    plt.tight_layout()  # Adjust layout to prevent overlap
+    path = "marvel_graph.png"
+    plt.savefig(path)
+    plt.close()
+
+    await ctx.respond(file=discord.File(path))
 
 
 # Event when the bot is ready
@@ -687,7 +746,7 @@ async def on_ready():
     logging.info("Bot started")
     print(f"{bot.user} is online!")
     # await bigben_time()
-
+    Steam_chart.setup(bot)
     await unban()
     await invitegen()
 
