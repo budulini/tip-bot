@@ -11,6 +11,11 @@ services:
       - PYTHONUNBUFFERED=1
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
       - TENOR_API_KEY=${TENOR_API_KEY}
+      - STEAM_API_KEY=${STEAM_API_KEY}
+      - STEAM_ID=${STEAM_ID}
+      - STEAM_CHANNEL_ID=${STEAM_CHANNEL_ID}
+      - TARGET_GAME=${TARGET_GAME}
+      - STEAM_LOG_FILE=${STEAM_LOG_FILE}
     networks:
       - bot-network
     restart: always
