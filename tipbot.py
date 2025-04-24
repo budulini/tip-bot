@@ -293,7 +293,7 @@ async def uptime(ctx: discord.ApplicationContext):
     uptime_duration = current_time - start_time  # Calculate the difference
     hours, remainder = divmod(int(uptime_duration.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
-    await ctx.send(f"Bot has been online for {hours} hours, {minutes} minutes, and {seconds} seconds.")
+    await ctx.respond(f"Bot has been online for {hours} hours, {minutes} minutes, and {seconds} seconds.")
     await ctx.send(f"now is {datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')}")
 
 
@@ -661,7 +661,7 @@ async def ticovi(ctx: discord.ApplicationContext):
     logging.basicConfig(level=logging.DEBUG)
 
     await ctx.defer()
-    cutoff = datetime.utcnow() - timedelta(days=30)
+    cutoff = datetime.now(datetime.UTC) - timedelta(days=30)
     sessions = {}
 
     # Return if no log file
@@ -694,9 +694,9 @@ async def ticovi(ctx: discord.ApplicationContext):
     # Plot bar chart: hours per day
     plt.figure(figsize=(15, 6))  # Increase figure size for better spacing
     plt.bar(range(len(dates)), durations, align='center')  # Use range for proper alignment
-    plt.xlabel("Date")
-    plt.ylabel("Hours played")
-    plt.title(f"{TARGET_GAME} daily playtime (last 30 days)")
+    plt.xlabel("Den")
+    plt.ylabel("hodiny goonění")
+    plt.title(f"degenerace (posledních 30 days)")
 
     # Set the x-ticks to show all dates
     plt.xticks(ticks=range(len(dates)), labels=[date.strftime("%Y-%m-%d") for date in dates], rotation=45, ha='right')
