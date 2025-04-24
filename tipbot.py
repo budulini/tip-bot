@@ -288,12 +288,12 @@ async def slovnik(ctx):
 
 @bot.slash_command(name="uptime")
 async def uptime(ctx: discord.ApplicationContext):
-    await ctx.defer
+    await ctx.defer()
     current_time = datetime.now().astimezone()  # Get the current time
     uptime_duration = current_time - start_time  # Calculate the difference
     hours, remainder = divmod(int(uptime_duration.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
-    await ctx.respond(f"Bot has been online for {hours} hours, {minutes} minutes, and {seconds} seconds.")
+    await ctx.send(f"Bot has been online for {hours} hours, {minutes} minutes, and {seconds} seconds.")
     await ctx.send(f"now is {datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')}")
 
 
