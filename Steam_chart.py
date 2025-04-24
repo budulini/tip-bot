@@ -25,18 +25,26 @@ LOG_FILE       = os.getenv("STEAM_LOG_FILE", "steam_activity.csv")
 
 
 async def get_steam_status():
-    """Fetch current game being played by the Steam user; returns game name or None."""
+    # Fetch current game being played by the Steam user; returns game name or None.
     url = (
         f"http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/"
         f"?key={STEAM_API_KEY}&steamids={STEAM_ID}"
     )
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            data = await resp.json()
-            player = data["response"]["players"][0]
-            game = player.get("gameextrainfo")
-            logger.debug(f"Fetched Steam status: {game}")
-            return game
+        while True:
+            async with session.get(url) as resp:
+                if resp.status == 429:  # Too Many Requests
+                    retry_after = int(resp.headers.get("Retry-After", 1))
+                    logger.warning(f"Rate limited. Retrying after {retry_after} seconds...")
+                    await asyncio.sleep(retry_after)
+                    continue
+                elif resp.status != 200:
+                    raise Exception(f"Error: {resp.status}, {await resp.text()}")
+                data = await resp.json()
+                player = data["response"]["players"][0]
+                game = player.get("gameextrainfo")
+                logger.debug(f"Fetched Steam status: {game}")
+                return game
 
 
 def log_session(start_time: datetime, duration: timedelta):
