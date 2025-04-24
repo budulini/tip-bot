@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import yt_dlp
 import logging
 import sys
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta, timezone, time
 import requests
 import random
 import Steam_chart
@@ -655,20 +655,19 @@ LOG_FILE = os.getenv("STEAM_LOG_FILE", "steam_activity.csv")
 TARGET_GAME = os.getenv("TARGET_GAME", "Marvel Rivals")
 
 
-@bot.slash_command(description="wolf je negr")
+@bot.slash_command(name="ticovi")
 async def ticovi(ctx: discord.ApplicationContext):
     import logging
     logging.basicConfig(level=logging.DEBUG)
 
     await ctx.defer()
-    cutoff = datetime.now(datetime.UTC) - timedelta(days=30)
+    current_date = datetime.now(timezone.utc).date()
+    cutoff_date = current_date - timedelta(days=30)
     sessions = {}
 
-    # Return if no log file
     if not os.path.isfile(LOG_FILE):
         return await ctx.respond(f"No data found for **{TARGET_GAME}**.")
 
-    # Read and aggregate durations per date
     with open(LOG_FILE, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -678,8 +677,9 @@ async def ticovi(ctx: discord.ApplicationContext):
                 sessions[date] = 0
             sessions[date] += dur
 
-    # Ensure all days in the last 30 days are included
-    all_dates = [cutoff.date() + timedelta(days=i) for i in range(30)]
+    # Include the current day by building the range dynamically
+    num_days = (current_date - cutoff_date).days + 1
+    all_dates = [cutoff_date + timedelta(days=i) for i in range(num_days)]
     dates = []
     durations = []
     for date in all_dates:
@@ -691,17 +691,13 @@ async def ticovi(ctx: discord.ApplicationContext):
     if not any(durations):
         return await ctx.respond(f"No play records for **{TARGET_GAME}** in the last 30 days.")
 
-    # Plot bar chart: hours per day
-    plt.figure(figsize=(15, 6))  # Increase figure size for better spacing
-    plt.bar(range(len(dates)), durations, align='center')  # Use range for proper alignment
+    plt.figure(figsize=(15, 6))
+    plt.bar(range(len(dates)), durations, align='center')
     plt.xlabel("Den")
     plt.ylabel("hodiny goonění")
     plt.title(f"degenerace (posledních 30 days)")
-
-    # Set the x-ticks to show all dates
     plt.xticks(ticks=range(len(dates)), labels=[date.strftime("%Y-%m-%d") for date in dates], rotation=45, ha='right')
-
-    plt.tight_layout()  # Adjust layout to prevent overlap
+    plt.tight_layout()
     path = "marvel_graph.png"
     plt.savefig(path)
     plt.close()

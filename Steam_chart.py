@@ -12,7 +12,7 @@ load_dotenv()
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL, logging.INFO),
-    format="%(asctime)s - %(levelname)s - steamtracker - %(message)s"
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -85,28 +85,29 @@ async def monitor_steam(bot):
 
             logger.debug(f"Monitoring Steam: game={game}, playing={playing}")
 
-            # Started playing
+            # Started playing and wasn't before
             if playing and not last_playing:
                 start_time = now
                 logger.info(f"Detected start of '{TARGET_GAME}' at {now.isoformat()}")
                 if channel:
-                    await channel.send(f"negr začal hrát **{TARGET_GAME}**")
+                    await channel.send(f"negr zacal hrat **{TARGET_GAME}**")
                 else:
                     logger.warning(f"Channel ID {CHANNEL_ID} not found; cannot send start message")
 
-            # Stopped playing
-            if not playing and last_playing and start_time:
-                duration = now - start_time
-                logger.info(f"Detected stop of '{TARGET_GAME}' at {now.isoformat()}, duration {duration}")
-                log_session(start_time, duration)
-                if channel:
-                    minutes = int(duration.total_seconds() / 60)
-                    await channel.send(
-                        f"negr přestal hrát **{TARGET_GAME}**; session duration {minutes} min"
-                    )
-                else:
-                    logger.warning(f"Channel ID {CHANNEL_ID} not found; cannot send stop message")
-                start_time = None
+            # Stopped playing with a required offline duration
+            elif not playing and last_playing and start_time:
+                if (now - start_time) > timedelta(minutes=2):  # Threshold of 2 minutes
+                    duration = now - start_time
+                    logger.info(f"Detected stop of '{TARGET_GAME}' at {now.isoformat()}, duration {duration}")
+                    log_session(start_time, duration)
+                    if channel:
+                        minutes = int(duration.total_seconds() / 60)
+                        await channel.send(
+                            f"přestal goonovat nad  **{TARGET_GAME}**; goonil {minutes} min"
+                        )
+                    else:
+                        logger.warning(f"Channel ID {CHANNEL_ID} not found; cannot send stop message")
+                    start_time = None
 
             last_playing = playing
 
