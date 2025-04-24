@@ -726,7 +726,7 @@ async def on_ready():
     )
     ensure_opus()
     global start_time
-    start_time = datetime.now().astimezone().tzinfo
+    start_time = datetime.now().astimezone()
     # Example log entry to test
     logging.info("Bot started")
     print(f"{bot.user} is online!")
