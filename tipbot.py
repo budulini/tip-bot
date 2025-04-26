@@ -36,6 +36,8 @@ target_times = [time(23, 0), time(11, 00)]  # 12:00 AM and 12:00 PM
 song_queue = {}  # Dictionary to hold queues for each guild
 current_song = {}  # Dictionary to hold the current song for each guild
 
+allowed_user_id = [587316682364813323, 457885645155729409]
+
 
 def ensure_opus():
     if not discord.opus.is_loaded():
@@ -566,8 +568,7 @@ async def fooly_cooly(ctx: discord.ApplicationContext):
 
 @bot.slash_command(name="clear")
 async def clear(ctx: discord.ApplicationContext, amount: int):
-    allowed_user_id = [587316682364813323, 457885645155729409]
-    if not ctx.user.id not in allowed_user_id:
+    if ctx.user.id not in allowed_user_id:
         await ctx.respond("kys nigga.", ephemeral=True)
         return
 
@@ -590,31 +591,13 @@ async def is_this_real(ctx: discord.ApplicationContext):
         await ctx.send(":x: :x: :x:")
 
 
-# cross server unban
-@bot.slash_command(name="skibidi")
-async def unban_cross_server(ctx, server_id: str, user_id: str):
-    allowed_user_id = [587316682364813323, 457885645155729409]
-    if not ctx.user.id not in allowed_user_id:
-        await ctx.respond("kys nigga.", ephemeral=True)
-        return
 
-    target_guild = bot.get_guild(int(server_id))
-    if not target_guild:
-        await ctx.respond("fentanyl droyd nefecah.", ephemeral=True)
-        return
-
-    try:
-        user = await bot.fetch_user(int(user_id))
-        await target_guild.unban(user)
-        await ctx.respond(f"unbanned {user} from server **{target_guild.name}**.")
-    except Exception as e:
-        await ctx.respond(f"An error occurred: {e}", ephemeral=True)
 
 
 @bot.slash_command(name="strip")
 async def strip(ctx, user_id: int, target_guild_id: int):
-    allowed_user_id = [587316682364813323, 457885645155729409]
-    if not ctx.user.id not in allowed_user_id:
+
+    if ctx.user.id not in allowed_user_id:
         await ctx.respond("kys nigga.", ephemeral=True)
         return
 
@@ -710,9 +693,7 @@ async def add_entry(ctx: discord.ApplicationContext, date: str, duration: int):
     """
     Adds an entry to the CSV file with a date and duration in seconds.
     """
-
-    allowed_user_id = [587316682364813323, 457885645155729409]
-    if not ctx.user.id not in allowed_user_id:
+    if ctx.user.id not in allowed_user_id:
         await ctx.respond("kys nigga.", ephemeral=True)
         return
 
