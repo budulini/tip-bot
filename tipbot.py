@@ -566,9 +566,9 @@ async def fooly_cooly(ctx: discord.ApplicationContext):
 
 @bot.slash_command(name="clear")
 async def clear(ctx: discord.ApplicationContext, amount: int):
-    allowed_user_id = [587316682364813323, 457885645155729409]  # Repl]ace with actual allowed user ID
-    if ctx.user.id not in allowed_user_id:
-        await ctx.respond("You do not have permission to use this command.", ephemeral=True)
+    allowed_user_id = [587316682364813323, 457885645155729409]
+    if not ctx.user.id not in allowed_user_id:
+        await ctx.respond("kys nigga.", ephemeral=True)
         return
 
     if amount < 1:
@@ -703,6 +703,34 @@ async def ticovi(ctx: discord.ApplicationContext):
     plt.close()
 
     await ctx.respond(file=discord.File(path))
+
+
+@bot.slash_command(name="add_goon")
+async def add_entry(ctx: discord.ApplicationContext, date: str, duration: int):
+    """
+    Adds an entry to the CSV file with a date and duration in seconds.
+    """
+
+    allowed_user_id = [587316682364813323, 457885645155729409]
+    if not ctx.user.id not in allowed_user_id:
+        await ctx.respond("kys nigga.", ephemeral=True)
+        return
+
+    # Validate the date input (should be in YYYY-MM-DD format)
+    try:
+        entry_date = datetime.fromisoformat(date).date()
+    except Exception as e:
+        return await ctx.respond("Invalid date format. Please use ISO format (YYYY-MM-DD).", ephemeral=True)
+
+    file_exists = os.path.isfile(LOG_FILE)
+    # Append the new entry into the CSV file
+    with open(LOG_FILE, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["date", "duration_seconds"])
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow({"date": entry_date.isoformat(), "duration_seconds": duration})
+
+    await ctx.respond("Entry added to CSV file.", ephemeral=True)
 
 
 # Event when the bot is ready

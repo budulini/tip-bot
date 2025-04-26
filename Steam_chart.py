@@ -33,7 +33,7 @@ async def get_steam_status():
     async with aiohttp.ClientSession() as session:
         while True:
             async with session.get(url) as resp:
-                if resp.status == 429:  # Too Many Requests
+                if resp.status == 429:
                     retry_after = int(resp.headers.get("Retry-After", 1))
                     logger.warning(f"Rate limited. Retrying after {retry_after} seconds...")
                     await asyncio.sleep(retry_after)
