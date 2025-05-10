@@ -692,11 +692,14 @@ async def ticovi(ctx: discord.ApplicationContext):
 
     await ctx.respond(file=discord.File(path))
 
-    total_duration = sum(durations)
-    num_days = len(durations)
+    filtered_durations = [duration for date, duration in zip(dates, durations) if date >= cutoff_date]
+
+    total_duration = sum(filtered_durations)
+    num_days = len(filtered_durations)
     avg_duration = total_duration / num_days if num_days > 0 else 0
     avg_duration_hours = avg_duration  # Already in hours
     avg_duration_days = num_days
+
     await ctx.send(f"Average goon time pro {num_days} dnu: {avg_duration_hours:.2f} za den.")
 
 @bot.slash_command(name="add_goon")
