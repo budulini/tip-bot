@@ -679,7 +679,12 @@ async def ticovi(ctx: discord.ApplicationContext):
     plt.xlabel("Den")
     plt.ylabel("hodiny goonění")
     plt.title(f"degenerace (posledních 30 days)")
-    plt.xticks(ticks=range(len(dates)), labels=[date.strftime("%Y-%m-%d") for date in dates], rotation=45, ha='right')
+    plt.xticks(
+        ticks=range(0, len(dates), 2),  # Adjust the step to approximate half-hour intervals
+        labels=[date.strftime("%Y-%m-%d") for i, date in enumerate(dates) if i % 2 == 0],
+        rotation=45,
+        ha='right'
+    )
     plt.tight_layout()
     path = "marvel_graph.png"
     plt.savefig(path)
@@ -687,6 +692,12 @@ async def ticovi(ctx: discord.ApplicationContext):
 
     await ctx.respond(file=discord.File(path))
 
+    total_duration = sum(durations)
+    num_days = len(durations)
+    avg_duration = total_duration / num_days if num_days > 0 else 0
+    avg_duration_hours = avg_duration  # Already in hours
+    avg_duration_days = num_days
+    await ctx.send(f"Average goon time pro {num_days} dnu: {avg_duration_hours:.2f} za den.")
 
 @bot.slash_command(name="add_goon")
 async def add_entry(ctx: discord.ApplicationContext, date: str, duration: int):
@@ -714,6 +725,7 @@ async def add_entry(ctx: discord.ApplicationContext, date: str, duration: int):
     await ctx.respond("Entry added to CSV file.", ephemeral=True)
 
 
+
 # Event when the bot is ready
 @bot.event
 async def on_ready():
@@ -736,7 +748,8 @@ async def on_ready():
     logging.info("Bot started")
     print(f"{bot.user} is online!")
     # await bigben_time()
-    Steam_chart.setup(bot)
+    # Steam_chart.setup(bot)
+
 
 
 # Running the bot with your token
