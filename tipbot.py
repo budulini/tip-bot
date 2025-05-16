@@ -679,12 +679,7 @@ async def ticovi(ctx: discord.ApplicationContext):
     plt.xlabel("Den")
     plt.ylabel("hodiny goonění")
     plt.title(f"degenerace (posledních 30 days)")
-    plt.xticks(
-        ticks=range(0, len(dates), 2),  # Adjust the step to approximate half-hour intervals
-        labels=[date.strftime("%Y-%m-%d") for i, date in enumerate(dates) if i % 2 == 0],
-        rotation=45,
-        ha='right'
-    )
+    plt.xticks(ticks=range(len(dates)), labels=[date.strftime("%Y-%m-%d") for date in dates], rotation=45, ha='right')
     plt.tight_layout()
     path = "marvel_graph.png"
     plt.savefig(path)
@@ -697,10 +692,8 @@ async def ticovi(ctx: discord.ApplicationContext):
     total_duration = sum(filtered_durations)
     num_days = len(filtered_durations)
     avg_duration = total_duration / num_days if num_days > 0 else 0
-    avg_duration_hours = avg_duration  # Already in hours
-    avg_duration_days = num_days
 
-    await ctx.send(f"Average goon time pro {num_days} dnu: {avg_duration_hours:.2f} za den.")
+    await ctx.send(f"Average goon time: {avg_duration:.2f} hours per day.")
 
 @bot.slash_command(name="add_goon")
 async def add_entry(ctx: discord.ApplicationContext, date: str, duration: int):
