@@ -22,7 +22,7 @@ STEAM_ID       = os.getenv("STEAM_ID")
 CHANNEL_ID     = int(os.getenv("STEAM_CHANNEL_ID", "0"))
 TARGET_GAME    = os.getenv("TARGET_GAME", "Marvel Rivals")
 LOG_FILE       = os.getenv("STEAM_LOG_FILE", "steam_activity.csv")
-
+STEAM_DAILY_TOTAL_LOG = os.getenv("STEAM_DAILY_TOTAL_LOG_FILE", "steam_daily_total_totals.csv")
 
 async def get_steam_status():
     # Fetch current game being played by the Steam user; returns game name or None.
@@ -117,7 +117,97 @@ async def monitor_steam(bot):
         await asyncio.sleep(60)
 
 
+
+
+
+async def get_total_playtime():
+    """Get the total playtime for TARGET_GAME from Steam API"""
+    url = (
+        f"http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/"
+        f"?key={STEAM_API_KEY}&steamid={STEAM_ID}&format=json&include_appinfo=true"
+    )
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            if resp.status != 200:
+                logger.error(f"Error getting total playtime: {resp.status}")
+                return None
+
+            data = await resp.json()
+            games = data.get("response", {}).get("games", [])
+
+            for game in games:
+                if game.get("name") == TARGET_GAME:
+                    # Steam returns playtime in minutes
+                    return game.get("playtime_forever", 0)
+
+    return None
+
+
+def log_daily_total(date, minutes_played):
+    """Log the daily total playtime to a separate CSV file"""
+    file_exists = os.path.isfile(STEAM_DAILY_TOTAL_LOG)
+
+    with open(STEAM_DAILY_TOTAL_LOG, "a", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(["date", "minutes_played"])
+        writer.writerow([date.isoformat(), minutes_played])
+        logger.info(f"Logged daily total: {date.isoformat()}, {minutes_played} minutes")
+
+
+async def daily_tracker(bot):
+    """Task that records total playtime at start and end of day"""
+    await bot.wait_until_ready()
+    morning_total = None
+    evening_total = None
+    current_date = datetime.now().date()
+    channel = bot.get_channel(CHANNEL_ID)
+
+    logger.info(f"Starting daily total playtime tracker for game: {TARGET_GAME}")
+
+    while True:
+        try:
+            now = datetime.now()
+            current_time = now.time()
+
+            # If the date changed, reset the tracking
+            if now.date() != current_date:
+                if morning_total is not None and evening_total is not None:
+                    # Calculate and log the difference if we have both measurements
+                    daily_minutes = evening_total - morning_total
+                    log_daily_total(current_date, daily_minutes)
+
+                    if channel and daily_minutes > 0:
+                        await channel.send(
+                            f"**{TARGET_GAME}** daily total: {daily_minutes / 60:.2f} hours"
+                        )
+
+                # Reset for the new day
+                current_date = now.date()
+                morning_total = None
+                evening_total = None
+                logger.info(f"Reset daily tracker for new date: {current_date}")
+
+            # Morning measurement (00:00-00:05)
+            if current_time.hour == 0 and current_time.minute <= 5 and morning_total is None:
+                morning_total = await get_total_playtime()
+                logger.info(f"Recorded morning total: {morning_total} minutes")
+
+            # Evening measurement (23:55-23:59)
+            elif current_time.hour == 23 and current_time.minute >= 55 and evening_total is None:
+                evening_total = await get_total_playtime()
+                logger.info(f"Recorded evening total: {evening_total} minutes")
+
+        except Exception as e:
+            logger.error(f"Daily tracker error: {e}", exc_info=True)
+
+        await asyncio.sleep(60)  # Check every minute
+
+
+
 def setup(bot):
-    """Initialize the Steam tracker: start monitor task."""
+    """Initialize the Steam trackers: start session monitor and daily total tasks."""
     bot.loop.create_task(monitor_steam(bot))
-    logger.info("Steam monitor task scheduled")
+    bot.loop.create_task(daily_tracker(bot))
+    logger.info("Steam monitor tasks scheduled")
