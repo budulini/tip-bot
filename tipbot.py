@@ -860,7 +860,7 @@ async def on_ready():
     logging.info("Bot started")
     print(f"{bot.user} is online!")
     # await bigben_time()
-    # Steam_chart.setup(bot)
+    Steam_chart.setup(bot)
 
 
 
