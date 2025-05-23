@@ -207,7 +207,14 @@ async def daily_tracker(bot):
 
 
 def setup(bot):
-    """Initialize the Steam trackers: start session monitor and daily total tasks."""
+    """Initialize the Steam trackers, ensuring only one instance runs."""
+    global _setup_complete
+    if _setup_complete:
+        logger.info("Steam monitor setup already complete, skipping.")
+        return
+
+    logger.info("Performing Steam monitor setup...")
     bot.loop.create_task(monitor_steam(bot))
     bot.loop.create_task(daily_tracker(bot))
+    _setup_complete = True # Mark setup as complete
     logger.info("Steam monitor tasks scheduled")

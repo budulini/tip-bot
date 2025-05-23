@@ -653,39 +653,43 @@ async def ticovi(
     cutoff_date = current_date - timedelta(days=30)
 
     if operation == "session_graph":
-        # Create graph from session-based data
         sessions = {}
-        if not os.path.isfile(LOG_FILE):
-            return await ctx.respond(f"No session data found for **{TARGET_GAME}**.")
+        if not os.path.isfile(LOG_FILE):  # Uses module-level LOG_FILE from tipbot.py
+            return await ctx.respond(
+                f"No session data found for **{TARGET_GAME}**.")  # Uses module-level TARGET_GAME from tipbot.py
 
-        with open(LOG_FILE, "r") as f:
+        with open(LOG_FILE, "r") as f:  # Uses module-level LOG_FILE from tipbot.py
             reader = csv.DictReader(f)
             for row in reader:
-                date = datetime.fromisoformat(row["date"]).date()
-                dur = int(row["duration_seconds"])
-                if date not in sessions:
-                    sessions[date] = 0
-                sessions[date] += dur
+                try:
+                    date = datetime.fromisoformat(row["date"]).date()
+                    dur = int(row["duration_seconds"])
+                    if date not in sessions:
+                        sessions[date] = 0
+                    sessions[date] += dur
+                except (ValueError, KeyError) as e:
+                    print(f"Skipping malformed row in {LOG_FILE}: {row} - Error: {e}")
+                    continue
 
-        # Include the current day by building the range dynamically
         num_days = (current_date - cutoff_date).days + 1
         all_dates = [cutoff_date + timedelta(days=i) for i in range(num_days)]
         dates = []
         durations = []
-        for date in all_dates:
-            duration = sessions.get(date, 0) / 3600  # Convert to hours
-            dates.append(date)
+        for date_iter in all_dates:  # Renamed 'date' to 'date_iter' to avoid conflict
+            duration = sessions.get(date_iter, 0) / 3600
+            dates.append(date_iter)
             durations.append(duration)
 
-        if not any(durations):
-            return await ctx.respond(f"No play records for **{TARGET_GAME}** in the last 30 days.")
+        if not any(d > 0 for d in durations):  # Check if any duration is actually greater than 0
+            return await ctx.respond(
+                f"No play records for **{TARGET_GAME}** in the last 30 days.")  # Uses module-level TARGET_GAME
 
         plt.figure(figsize=(15, 6))
         plt.bar(range(len(dates)), durations, align='center')
         plt.xlabel("Den")
         plt.ylabel("hodiny goonění")
         plt.title(f"Sessions - degenerace (posledních 30 days)")
-        plt.xticks(ticks=range(len(dates)), labels=[date.strftime("%Y-%m-%d") for date in dates], rotation=45,
+        plt.xticks(ticks=range(len(dates)), labels=[d.strftime("%Y-%m-%d") for d in dates], rotation=45,
                    ha='right')
         plt.tight_layout()
         path = "marvel_graph.png"
@@ -694,41 +698,49 @@ async def ticovi(
 
         await ctx.respond(file=discord.File(path))
 
-        total_duration = sum(durations)
+        total_duration_sum = sum(durations)
         active_days = sum(1 for d in durations if d > 0)
-        avg_duration = total_duration / active_days if active_days > 0 else 0
-        await ctx.send(f"Average goon time (sessions): {avg_duration:.2f} hours per day.")
+        avg_duration = total_duration_sum / active_days if active_days > 0 else 0
+        await ctx.send(f"Average goon time (sessions): {avg_duration:.2f} hours per day over the last 30 days.")
 
     elif operation == "daily_total_graph":
-        # Create graph from daily total measurements
         daily_totals = {}
-        if not os.path.isfile(STEAM_DAILY_TOTAL_LOG):
-            return await ctx.respond(f"No daily total data found for **{TARGET_GAME}**.")
+        if not os.path.isfile(STEAM_DAILY_TOTAL_LOG):  # Uses module-level STEAM_DAILY_TOTAL_LOG from tipbot.py
+            return await ctx.respond(
+                f"No daily total data found for **{TARGET_GAME}**.")  # Uses module-level TARGET_GAME
 
-        with open(STEAM_DAILY_TOTAL_LOG, "r") as f:
+        with open(STEAM_DAILY_TOTAL_LOG, "r") as f:  # Uses module-level STEAM_DAILY_TOTAL_LOG
             reader = csv.DictReader(f)
             for row in reader:
-                date = datetime.fromisoformat(row["date"]).date()
-                minutes = float(row["minutes_played"])
-                daily_totals[date] = minutes / 60  # Convert to hours
+                try:
+                    date = datetime.fromisoformat(row["date"]).date()
+                    minutes = float(row["minutes_played"])
+                    daily_totals[date] = minutes / 60
+                except (ValueError, KeyError) as e:
+                    print(f"Skipping malformed row in {STEAM_DAILY_TOTAL_LOG}: {row} - Error: {e}")
+                    continue
 
-        # Filter for dates in the last 30 days
-        dates = []
+        dates_filtered = []  # Renamed to avoid conflict
         daily_hours = []
-        for date, hours in sorted(daily_totals.items()):
-            if date >= cutoff_date:
-                dates.append(date)
-                daily_hours.append(hours)
+        # Iterate through all dates in the last 30 days to ensure consistent plotting
+        num_days = (current_date - cutoff_date).days + 1
+        all_plot_dates = [cutoff_date + timedelta(days=i) for i in range(num_days)]
 
-        if not dates:
-            return await ctx.respond(f"No daily total records for **{TARGET_GAME}** in the last 30 days.")
+        for plot_date in all_plot_dates:
+            dates_filtered.append(plot_date)
+            daily_hours.append(daily_totals.get(plot_date, 0))
+
+        if not any(h > 0 for h in daily_hours):  # Check if any hours are actually greater than 0
+            return await ctx.respond(
+                f"No daily total records for **{TARGET_GAME}** in the last 30 days.")  # Uses module-level TARGET_GAME
 
         plt.figure(figsize=(15, 6))
-        plt.bar(range(len(dates)), daily_hours, align='center', color='orange')
+        plt.bar(range(len(dates_filtered)), daily_hours, align='center', color='orange')
         plt.xlabel("Den")
         plt.ylabel("hodiny goonění")
-        plt.title(f"Daily Totals - degenerace (daily snapshots)")
-        plt.xticks(ticks=range(len(dates)), labels=[date.strftime("%Y-%m-%d") for date in dates], rotation=45,
+        plt.title(f"Daily Totals - degenerace (last 30 days)")
+        plt.xticks(ticks=range(len(dates_filtered)), labels=[d.strftime("%Y-%m-%d") for d in dates_filtered],
+                   rotation=45,
                    ha='right')
         plt.tight_layout()
         path = "daily_totals_graph.png"
@@ -737,79 +749,106 @@ async def ticovi(
 
         await ctx.respond(file=discord.File(path))
 
-        if daily_hours:
-            avg_daily = sum(daily_hours) / len(daily_hours)
-            await ctx.send(f"Average goon time (daily totals): {avg_daily:.2f} hours per day.")
+        if daily_hours:  # This will always be true if the above check passed
+            avg_daily = sum(h for h in daily_hours if h > 0) / sum(1 for h in daily_hours if h > 0) if sum(
+                1 for h in daily_hours if h > 0) > 0 else 0
+            await ctx.send(
+                f"Average goon time (daily totals for active days): {avg_daily:.2f} hours per day over the last 30 days.")
 
     elif operation == "sessions_text":
-        # Show text summary of session data
         sessions = {}
-        if not os.path.isfile(LOG_FILE):
-            return await ctx.respond(f"No session data found for **{TARGET_GAME}**.")
+        if not os.path.isfile(LOG_FILE):  # Uses module-level LOG_FILE
+            return await ctx.respond(f"No session data found for **{TARGET_GAME}**.")  # Uses module-level TARGET_GAME
 
-        with open(LOG_FILE, "r") as f:
+        with open(LOG_FILE, "r") as f:  # Uses module-level LOG_FILE
             reader = csv.DictReader(f)
             for row in reader:
-                date = datetime.fromisoformat(row["date"]).date()
-                dur = int(row["duration_seconds"])
-                if date not in sessions:
-                    sessions[date] = 0
-                sessions[date] += dur
+                try:
+                    date = datetime.fromisoformat(row["date"]).date()
+                    dur = int(row["duration_seconds"])
+                    if date not in sessions:
+                        sessions[date] = 0
+                    sessions[date] += dur
+                except (ValueError, KeyError) as e:
+                    print(f"Skipping malformed row in {LOG_FILE}: {row} - Error: {e}")
+                    continue
 
-        if not sessions:
-            return await ctx.respond(f"No session data found for **{TARGET_GAME}**.")
+        if not sessions:  # Should be caught by isfile, but good practice
+            return await ctx.respond(f"No session data found for **{TARGET_GAME}**.")  # Uses module-level TARGET_GAME
 
-        message = f"**{TARGET_GAME} Session Data (Hours)**\n```\nDate       | Hours\n-----------+-------\n"
+        message = f"**{TARGET_GAME} Session Data (Hours) - Last 30 Days**\n```\nDate       | Hours\n-----------+-------\n"  # Uses module-level TARGET_GAME
 
-        for date in sorted(sessions.keys(), reverse=True):
-            if date >= cutoff_date:
-                hours = sessions[date] / 3600
-                message += f"{date.strftime('%Y-%m-%d')} | {hours:.2f}\n"
+        # Filter for the last 30 days and sort
+        recent_sessions_data = []
+        for date_entry, total_seconds in sorted(sessions.items(), reverse=True):
+            if date_entry >= cutoff_date:
+                hours = total_seconds / 3600
+                recent_sessions_data.append((date_entry, hours))
+
+        if not recent_sessions_data:
+            message += "No session data in the last 30 days.\n"
+        else:
+            for date_entry, hours in recent_sessions_data:
+                message += f"{date_entry.strftime('%Y-%m-%d')} | {hours:.2f}\n"
 
         message += "```"
         await ctx.respond(message)
 
-        # Calculate statistics
-        recent_sessions = {d: h for d, h in sessions.items() if d >= cutoff_date}
-        if recent_sessions:
-            total_hours = sum(recent_sessions.values()) / 3600
-            active_days = len(recent_sessions)
-            avg_hours = total_hours / active_days
-            await ctx.send(f"Total: {total_hours:.2f} hours over {active_days} days (avg: {avg_hours:.2f} h/day)")
+        if recent_sessions_data:
+            total_hours_sum = sum(h for _, h in recent_sessions_data)
+            active_days_count = len(recent_sessions_data)
+            avg_hours_calc = total_hours_sum / active_days_count if active_days_count > 0 else 0
+            await ctx.send(
+                f"Total: {total_hours_sum:.2f} hours over {active_days_count} active days (avg: {avg_hours_calc:.2f} h/day) in the last 30 days.")
+        elif not sessions:  # If no sessions at all
+            await ctx.send("No session data available to calculate statistics.")
+
 
     elif operation == "daily_total_text":
-        # Show text summary of daily total data
         daily_totals = {}
-        if not os.path.isfile(STEAM_DAILY_TOTAL_LOG):
-            return await ctx.respond(f"No daily total data found for **{TARGET_GAME}**.")
+        if not os.path.isfile(STEAM_DAILY_TOTAL_LOG):  # Uses module-level STEAM_DAILY_TOTAL_LOG
+            return await ctx.respond(
+                f"No daily total data found for **{TARGET_GAME}**.")  # Uses module-level TARGET_GAME
 
-        with open(STEAM_DAILY_TOTAL_LOG, "r") as f:
+        with open(STEAM_DAILY_TOTAL_LOG, "r") as f:  # Uses module-level STEAM_DAILY_TOTAL_LOG
             reader = csv.DictReader(f)
             for row in reader:
-                date = datetime.fromisoformat(row["date"]).date()
-                minutes = float(row["minutes_played"])
-                daily_totals[date] = minutes / 60  # Convert to hours
+                try:
+                    date = datetime.fromisoformat(row["date"]).date()
+                    minutes = float(row["minutes_played"])
+                    daily_totals[date] = minutes / 60
+                except (ValueError, KeyError) as e:
+                    print(f"Skipping malformed row in {STEAM_DAILY_TOTAL_LOG}: {row} - Error: {e}")
+                    continue
 
-        if not daily_totals:
-            return await ctx.respond(f"No daily total data found for **{TARGET_GAME}**.")
+        if not daily_totals:  # Should be caught by isfile
+            return await ctx.respond(
+                f"No daily total data found for **{TARGET_GAME}**.")  # Uses module-level TARGET_GAME
 
-        message = f"**{TARGET_GAME} Daily Total Data (Hours)**\n```\nDate       | Hours\n-----------+-------\n"
+        message = f"**{TARGET_GAME} Daily Total Data (Hours) - Last 30 Days**\n```\nDate       | Hours\n-----------+-------\n"  # Uses module-level TARGET_GAME
 
-        for date in sorted(daily_totals.keys(), reverse=True):
-            if date >= cutoff_date:
-                hours = daily_totals[date]
-                message += f"{date.strftime('%Y-%m-%d')} | {hours:.2f}\n"
+        recent_totals_data = []
+        for date_entry, hours_val in sorted(daily_totals.items(), reverse=True):
+            if date_entry >= cutoff_date:
+                recent_totals_data.append((date_entry, hours_val))
+
+        if not recent_totals_data:
+            message += "No daily total data in the last 30 days.\n"
+        else:
+            for date_entry, hours_val in recent_totals_data:
+                message += f"{date_entry.strftime('%Y-%m-%d')} | {hours_val:.2f}\n"
 
         message += "```"
         await ctx.respond(message)
 
-        # Calculate statistics
-        recent_totals = {d: h for d, h in daily_totals.items() if d >= cutoff_date}
-        if recent_totals:
-            total_hours = sum(recent_totals.values())
-            days_count = len(recent_totals)
-            avg_hours = total_hours / days_count
-            await ctx.send(f"Total: {total_hours:.2f} hours over {days_count} days (avg: {avg_hours:.2f} h/day)")
+        if recent_totals_data:
+            total_hours_sum = sum(h for _, h in recent_totals_data)
+            days_count = len(recent_totals_data)
+            avg_hours_calc = total_hours_sum / days_count if days_count > 0 else 0
+            await ctx.send(
+                f"Total: {total_hours_sum:.2f} hours over {days_count} recorded days (avg: {avg_hours_calc:.2f} h/day) in the last 30 days.")
+        elif not daily_totals:
+            await ctx.send("No daily total data available to calculate statistics.")
 
 @bot.slash_command(name="add_goon")
 async def add_entry(ctx: discord.ApplicationContext, date: str, duration: int):
