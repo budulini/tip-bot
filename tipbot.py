@@ -900,9 +900,10 @@ async def on_ready():
     logging.info("Bot started")
     print(f"{bot.user} is online!")
     # await bigben_time()
-    Steam_chart.setup(bot)
+    # Steam_chart.setup(bot)
     try:
         deals_client = game_deals.setup_game_deals(bot)
+        logging.info("Game Deals client setup complete.")
     except Exception as e:
         logging.error(f"neco se dosralo game deals: {e}")
 
