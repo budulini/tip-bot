@@ -16,6 +16,7 @@ import random
 import Steam_chart
 import matplotlib.pyplot as plt
 import csv
+import game_deals
 
 load_dotenv()
 
@@ -900,6 +901,10 @@ async def on_ready():
     print(f"{bot.user} is online!")
     # await bigben_time()
     Steam_chart.setup(bot)
+    try:
+        deals_client = game_deals.setup_game_deals(bot)
+    except Exception as e:
+        logging.error(f"neco se dosralo game deals: {e}")
 
 
 
