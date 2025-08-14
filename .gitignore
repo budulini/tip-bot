@@ -333,4 +333,4 @@ cython_debug/
 ./idea/misc.xml
 .idea/tip-bot.iml
 ./files
-./.idea
+./.idea/copilotDiffState.xml
